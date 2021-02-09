@@ -1,1 +1,1 @@
-# Star_it_node_team_back
+# This folder is for server side of *StarIt!*
