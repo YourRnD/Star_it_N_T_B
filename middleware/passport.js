@@ -12,11 +12,15 @@ module.exports = passport => {
     passport.use(
         new JwtStrategy(options, (playload, done) => {
             try {
-                db.query('SELECT `id`, `email` FROM `users` WHERE `id` = "' + playload.userId + '"', (error, rows, fields) => {
+                db.query(
+                    `SELECT idCustomer, email FROM customer ` +
+                    `WHERE idCustomer = $1`,
+                    [playload.userId],
+                    (error, data) => {
                     if (error) {
                         console.log(error);
                     } else {
-                        const user = rows;
+                        const user = data.rows;
                         if (user) {
                             done(null, user);
                         } else {

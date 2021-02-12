@@ -7,74 +7,52 @@ const config = require('../config');
 const response = require('./../response');
 const db = require('../settings/db');
 
-exports.test = async (req, res) => {
-    const {name, email, password} = req.body;
-    await db.query(
-        `INSERT INTO Customer (name, email, password)` +
-        `VALUES ($1, $2, $3) RETURNING *`,
-        [name, email, password],
-        (error) => {
-            if (error) {
-                response.status(404, error, res);
-            } else {
-                response.status(200, {
-                    message: `Пользователь с почтой - ${email}, успешно создан` 
-                }, res)
-            }
-        }
-    );
-}
-
-// api/users/getAllUsers
-exports.getAllUsers = (req, res) => {
-
-    db.query('SELECT `id`, `name`, `second_name`, `email` FROM `users`', (error, rows, fields) => {
-        if (error) {
-            response.status(404, error, res);
-        } else {
-            response.status(200, rows, res)
-        }
-    });
-
-}
-
 // api/users/signup
 exports.signup = (req, res) => {
-    db.query('SELECT `id`, `email`, `name` FROM `users` WHERE `email` = "' + req.body.email + '"' , (error, rows, fields) => {
+    db.query(
+        `SELECT idcustomer, email, name FROM customer
+        WHERE email = $1`,
+        [req.body.email],
+        (error, data) => {
         if(error) {
             response.status(400, error, res);
-        } else if (typeof rows !== 'undefined' && rows.length > 0) {
-            response.status(302, {message: 'User with this email already exists'}, res);
+        } else if (typeof data.rows !== 'undefined' && data.rows.length > 0) {
+            response.status(302, {message: 'Пользователь с таким email уже существует'}, res);
         } else {
             const email = req.body.email,
                   name = req.body.name,
-                  secondName = req.body.second_name !== '' ? req.body.second_name : '',
                   salt = bcrypt.genSaltSync(15),
                   password = bcrypt.hashSync(req.body.password, salt);
 
-            const sql = 'INSERT INTO `users`(`name`, `second_name`, `email`, `password`)' +
-                        ' VALUES ("' + name + '", "' + secondName + '", "' + email + '", "' + password + '")';
-
-            db.query(sql, (error, results) => {
+            db.query(
+                `INSERT INTO customer(name, email, password)
+                VALUES ($1, $2, $3)`,
+                [name, email, password],
+                (error) => {
                 if (error) {
                     response.status(400, error, res);
                 } else {
-                    response.status(200, {message: 'Регистрация прошла успешно!', results}, res);
+                    response.status(200, {message: 'Регистрация прошла успешно!'}, res);
                 }
             });
         }
     }); 
 }
 
+// api/users/signin
 exports.signin = (req, res) => {
 
-    db.query('SELECT `id`, `email`, `password` FROM `users` WHERE `email` = "' + req.body.email + '"' , (error, rows, fields) => {
+    db.query(
+        `SELECT idCustomer, email, password FROM customer
+        WHERE email = $1`,
+        [req.body.email],
+        (error, data) => {
         if(error) {
             response.status(400, error, res);
-        } else if (rows.length <= 0) {
-            response.status(401, {message: 'User is not found'}, res);
+        } else if (data.rows.length <= 0) {
+            response.status(401, {message: 'Email или пароль указаны неверно'}, res);
         } else {
-            const row = JSON.parse(JSON.stringify(rows))[0];
+            const row = JSON.parse(JSON.stringify(data.rows))[0];
             const password = bcrypt.compareSync(req.body.password, row.password);
 
             if (password) {
@@ -87,11 +65,11 @@ exports.signin = (req, res) => {
                 });
 
                 response.status(200, {
-                    message: 'User found',
+                    message: 'Пользователь найден',
                     token: `Bearer ${token}`
                 }, res);
             } else {
-                response.status(401, {message: 'Password is not correct'}, res);
+                response.status(401, {message: 'Email или пароль указаны неверно'}, res);
             }
         }
     }); 
