@@ -6,6 +6,11 @@ module.exports = (app) => {
     const pointsController = require('./../Controller/PointsController');
     const feedbackController = require('./../Controller/FeedbackController');
 
+    app
+        .route('/api/users/test')
+        .post(usersController.test);
+
+    /*
     //api/users
     app
         .route('/api/users/getAllUsers')
@@ -40,4 +45,5 @@ module.exports = (app) => {
         .post(passport.authenticate('jwt', {
             session: false
         }), feedbackController.setFeedback);
+    */
 };

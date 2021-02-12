@@ -7,6 +7,24 @@ const config = require('../config');
 const response = require('./../response');
 const db = require('../settings/db');
 
+exports.test = async (req, res) => {
+    const {name, email, password} = req.body;
+    await db.query(
+        `INSERT INTO Customer (name, email, password)` +
+        `VALUES ($1, $2, $3) RETURNING *`,
+        [name, email, password],
+        (error) => {
+            if (error) {
+                response.status(404, error, res);
+            } else {
+                response.status(200, {
+                    message: `Пользователь с почтой - ${email}, успешно создан` 
+                }, res)
+            }
+        }
+    );
+}
+
 // api/users/getAllUsers
 exports.getAllUsers = (req, res) => {
 

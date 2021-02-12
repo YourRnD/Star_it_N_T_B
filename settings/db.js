@@ -1,3 +1,17 @@
+const Pool = require('pg').Pool;
+const config = require('../config');
+
+const pool = new Pool({
+    host: config.HOST,
+    port: config.PORT,
+    user: config.DBUSER,
+    password: config.DBPASSWORD,
+    database: config.DBNAME
+});
+
+module.exports = pool;
+
+/*
 const mysql = require('mysql');
 const config = require('../config');
 
@@ -18,3 +32,4 @@ connection.connect((error) => {
 });
 
 module.exports = connection;
+*/

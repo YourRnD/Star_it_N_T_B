@@ -1,8 +1,8 @@
 module.exports = {
-    HOST: '127.0.0.1',
-    PORT: 3306,
-    DBUSER: 'root',
-    DBPASSWORD: 'root',
-    DBNAME: 'rest',
+    HOST: 'localhost',
+    PORT: 5432,
+    DBUSER: 'postgres',
+    DBPASSWORD: 'qwerty322',
+    DBNAME: 'star_it',
     jwt: 'jwt-secret-code'
 }
