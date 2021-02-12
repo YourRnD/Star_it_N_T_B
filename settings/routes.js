@@ -5,24 +5,15 @@ module.exports = (app) => {
     const usersController = require('./../Controller/UsersController');
     const pointsController = require('./../Controller/PointsController');
     const feedbackController = require('./../Controller/FeedbackController');
-
-    app
-        .route('/api/users/test')
-        .post(usersController.test);
-
-    /*
+    
     //api/users
-    app
-        .route('/api/users/getAllUsers')
-        .get(passport.authenticate('jwt', {
-            session: false
-        }), usersController.getAllUsers);
     app
         .route('/api/users/signup')
         .post(usersController.signup);
     app
         .route('/api/users/signin')
         .get(usersController.signin);
+    
     //api/points
     app
         .route('/api/points/getAllPoints')
@@ -45,5 +36,4 @@ module.exports = (app) => {
         .post(passport.authenticate('jwt', {
             session: false
         }), feedbackController.setFeedback);
-    */
 };

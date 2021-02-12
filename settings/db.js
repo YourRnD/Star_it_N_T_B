@@ -1,29 +1,13 @@
-const Pool = require('pg').Pool;
-const config = require('../config');
+const { Client } = require('pg');
 
-const pool = new Pool({
-    host: config.HOST,
-    port: config.PORT,
-    user: config.DBUSER,
-    password: config.DBPASSWORD,
-    database: config.DBNAME
+const client = new Client({
+  connectionString: process.env.DATABASE_URL || 'postgres://ymksidldgvqttv:f6dd4524fdfa3baec99ff8bd764a6ad67fd7dbdce641ae630bfcdb6262522b7a@ec2-34-247-118-233.eu-west-1.compute.amazonaws.com:5432/dkmdbhakh09m7',
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
-module.exports = pool;
-
-/*
-const mysql = require('mysql');
-const config = require('../config');
-
-const connection = mysql.createConnection({
-    host: config.HOST,
-    port: config.PORT,
-    user: config.DBUSER,
-    password: config.DBPASSWORD,
-    database: config.DBNAME
-});
-
-connection.connect((error) => {
+client.connect((error) => {
     if(error) {
         return console.log('Ошибка подключения к БД', error);
     } else {
@@ -31,5 +15,4 @@ connection.connect((error) => {
     }
 });
 
-module.exports = connection;
-*/
+module.exports = client;
