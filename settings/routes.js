@@ -2,9 +2,15 @@
 
 module.exports = (app) => {
     const passport = require('passport');
+<<<<<<< HEAD
     const usersController = require('../controllers/customer');
     const pointsController = require('../controllers/point');
     const feedbackController = require('../controllers/feedback');
+=======
+    const usersController = require('./../Controller/UsersController');
+    const pointsController = require('./../Controller/PointsController');
+    const feedbackController = require('./../Controller/FeedbackController');
+>>>>>>> 6dbcb7ce04e2e5aff212bfcd9e49c3804c585b06
     
     //api/users
     app
