@@ -1,9 +1,4 @@
 const express = require('express');
-<<<<<<< HEAD
-=======
-const app = express();
-const port = process.env.PORT || 3500;
->>>>>>> 6dbcb7ce04e2e5aff212bfcd9e49c3804c585b06
 const bodyParser = require('body-parser');
 const passport = require('passport');
 const inject = require('require-all');
