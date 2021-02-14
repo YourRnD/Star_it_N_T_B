@@ -1,13 +1,13 @@
 'use strict';
 
-module.exports = (router) => {
-    
+module.exports = ({ router, actions, db }) => {
+
     const passport = require('passport');
 
     const response = require('../response');
-    const db = require('../settings/db');
-    
+
     const routes = router();
+    const point = actions.point({ db });
 
     //api/point/
     routes.get(
@@ -17,16 +17,16 @@ module.exports = (router) => {
         }),
         (req, res) => {
 
-            db.query(
-                `SELECT idPoint, name, address FROM point`,
-                (error, data) => {
-                if (error) {
-                    response.status(404, error, res);
-                } else {
-                    response.status(200, data.rows, res)
-                }
-            });
-        
+            const target = point.getAll();
+
+            target
+                .then(result => {
+                    response.status(200, result, res);
+                })
+                .catch(e => {
+                    response.status(404, e, res);
+                });
+
         }
     )
 
@@ -38,18 +38,16 @@ module.exports = (router) => {
         }),
         (req, res) => {
 
-            db.query(
-                `SELECT idPoint, name, address FROM point
-                WHERE idPoint = $1`,
-                [req.params.id],
-                (error, data) => {
-                if (error) {
-                    response.status(404, error, res);
-                } else {
-                    response.status(200, data.rows, res)
-                }
-            });
-        
+            const target = point.get(req.params.id);
+
+            target
+                .then(result => {
+                    response.status(200, result, res);
+                })
+                .catch(e => {
+                    response.status(404, e, res);
+                });
+
         }
     )
 
@@ -60,35 +58,77 @@ module.exports = (router) => {
             session: false
         }),
         (req, res) => {
-            
-            //db -- start
-            db.query(
-                `SELECT idpoint, name, address FROM point
-                WHERE name = $1 AND address = $2`,
-                [req.body.name, req.body.address],
-                (error, data) => {
-                if(error) {
-                    response.status(400, error, res);
-                } else if (typeof data.rows !== 'undefined' && data.rows.length > 0) {
-                    response.status(302, {message: 'Такая точка уже есть в базе'}, res);
-                } else {
-                    const address = req.body.address,
-                          name = req.body.name;
-        
-                    db.query(
-                        `INSERT INTO point(name, address)
-                        VALUES ($1, $2)`,
-                        [name, address],
-                        (error) => {
-                        if (error) {
-                            response.status(400, error, res);
-                        } else {
-                            response.status(200, {message: 'Точка успешно добавлена'}, res);
-                        }
-                    });
-                }
-            }); 
-            //db -- end
+
+            const target = point.add(req.body.payload);
+
+            target
+                .then(result => {
+                    response.status(
+                        200,
+                        {
+                            message: 'Точка успешно добавлена',
+                            result
+                        },
+                        res);
+                })
+                .catch(e => {
+                    response.status(400, e, res);
+                });
+
+        }
+    );
+
+    //api/point/
+    routes.delete(
+        '/:id',
+        passport.authenticate('jwt', {
+            session: false
+        }),
+        (req, res) => {
+
+            const target = point.delete(req.params.id);
+
+            target
+                .then(result => {
+                    response.status(
+                        200,
+                        {
+                            message: 'Точка успешно удалена',
+                            result
+                        },
+                        res);
+                })
+                .catch(e => {
+                    response.status(400, e, res);
+                });
+
+        }
+    );
+
+    //api/point/
+    routes.put(
+        '/:id',
+        passport.authenticate('jwt', {
+            session: false
+        }),
+        (req, res) => {
+
+            const target = point.update(req.params.id, req.body.payload);
+
+            target
+                .then(result => {
+                    response.status(
+                        200,
+                        {
+                            message: 'Точка успешно обновлена',
+                            result
+                        },
+                        res);
+                })
+                .catch(e => {
+                    response.status(400, e, res);
+                });
+
         }
     );
 
