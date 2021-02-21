@@ -1,136 +1,241 @@
 'use strict';
 
-module.exports = ({ router, actions, db }) => {
+module.exports = ({ router, actions, db, validators }) => {
 
-    const response = require('../response');
-    const passport = require('passport');
+  const response = require('../common/response');
+  const config = require('./../config');
 
-    const routes = router();
-    const feedback = actions.feedback({ db });
+  const passport = require('passport');
+  const HttpStatus = require('http-status-codes');
+  const jwt = require('jsonwebtoken');
 
-    //api/point/
-    routes.get(
-        '/',
-        passport.authenticate('jwt', {
-            session: false
-        }),
-        (req, res) => {
+  const routes = router();
+  const feedback = actions.feedback({ db });
+  const point = actions.point({ db });
+  const { feedbackValidate } = validators.feedback;
 
-            const target = feedback.getAll();
+  //api/point/
+  routes.get(
+    '/',
+    passport.authenticate('jwt', {
+      session: false,
+      failureRedirect: '/login'
+    }),
+    (req, res) => {
 
-            target
-                .then(result => {
-                    response.status(200, result, res);
+      const target = feedback.getAll();
+
+      target
+        .then(result => {
+          response.status(HttpStatus.OK, result, res);
+        })
+        .catch(e => {
+          response.status(HttpStatus.BAD_REQUEST, e, res);
+        });
+
+    }
+  )
+
+  //api/point/:id
+  routes.get(
+    '/:id',
+    passport.authenticate('jwt', {
+      session: false,
+      failureRedirect: '/login'
+    }),
+    (req, res) => {
+
+      const target = feedback.get(req.params.id);
+
+      target
+        .then(result => {
+          response.status(HttpStatus.OK, result, res);
+        })
+        .catch(e => {
+          response.status(HttpStatus.BAD_REQUEST, e, res);
+        });
+
+    }
+  )
+
+  //api/point/
+  routes.post(
+    '/',
+    passport.authenticate('jwt', {
+      session: false,
+      failureRedirect: '/login'
+    }),
+    (req, res) => {
+
+      try {
+
+        const reqData = feedbackValidate.add(req.body.payload);
+
+        const token = req.headers.authorization.split('Bearer ').join('');
+        const idCustomer = jwt.verify(token, config.jwt).userId;
+
+        point.get(reqData.idPoint)
+          .then(result => {
+
+            if (result.rows.length === 0) {
+              throw {
+                message: 'There is no such point in the database!'
+              }
+            }
+
+            feedback.add({
+              ...reqData,
+              idCustomer,
+              date: new Date()
+            })
+              .then(result => {
+                response.status(
+                  HttpStatus.OK,
+                  {
+                    message: 'Review added successfully!',
+                    result
+                  },
+                  res);
+              })
+              .catch(e => {
+                response.status(HttpStatus.BAD_REQUEST, e, res);
+              });
+          })
+          .catch(e => {
+            response.status(HttpStatus.BAD_REQUEST, e, res);
+          });
+
+
+      } catch (e) {
+        response.status(HttpStatus.BAD_REQUEST, e, res);
+      }
+
+    }
+  );
+
+  //api/point/
+  routes.delete(
+    '/:id',
+    passport.authenticate('jwt', {
+      session: false,
+      failureRedirect: '/login'
+    }),
+    (req, res) => {
+
+      try {
+        const reqData = feedbackValidate.delete(+req.params.id);
+
+        const token = req.headers.authorization.split('Bearer ').join('');
+        const idCustomer = jwt.verify(token, config.jwt).userId;
+
+        feedback.get(reqData)
+          .then(result => {
+
+            if (result.rows.length === 0) {
+              throw {
+                message: 'There is no such review in the database!'
+              }
+            } else if (result.rows[0].idcustomer != idCustomer) {
+              throw {
+                message: 'You cannot delete reviews of other users!'
+              }
+            }
+
+            feedback.delete(reqData)
+              .then(result => {
+                response.status(
+                  HttpStatus.OK,
+                  {
+                    message: 'Review successfully deleted!',
+                    result
+                  },
+                  res);
+              })
+              .catch(e => {
+                response.status(HttpStatus.BAD_REQUEST, e, res);
+              });
+
+          })
+          .catch(e => {
+            response.status(HttpStatus.BAD_REQUEST, e, res);
+          });
+
+      } catch (e) {
+        response.status(HttpStatus.BAD_REQUEST, e, res);
+      }
+
+    }
+  );
+
+  //api/point/
+  routes.put(
+    '/:id',
+    passport.authenticate('jwt', {
+      session: false,
+      failureRedirect: '/login'
+    }),
+    (req, res) => {
+
+      try {
+        const reqData = feedbackValidate.update(+req.params.id, req.body.payload);
+
+        const token = req.headers.authorization.split('Bearer ').join('');
+        const idCustomer = jwt.verify(token, config.jwt).userId;
+
+        feedback.get(reqData)
+          .then(result => {
+
+            if (result.rows.length === 0) {
+              throw {
+                message: 'There is no such review in the database!'
+              }
+            } else if (result.rows[0].idcustomer != idCustomer) {
+              throw {
+                message: 'You cannot delete reviews of other users!'
+              }
+            }
+            point.get(reqData.idPoint)
+              .then(result => {
+
+                if (result.rows.length === 0) {
+                  throw {
+                    message: 'There is no such point in the database!'
+                  }
+                }
+
+                feedback.update(req.params.id, {
+                  ...reqData,
+                  idCustomer,
+                  date: new Date()
                 })
-                .catch(e => {
-                    response.status(404, e, res);
-                });
-
-        }
-    )
-
-    //api/point/:id
-    routes.get(
-        '/:id',
-        passport.authenticate('jwt', {
-            session: false
-        }),
-        (req, res) => {
-
-            const target = feedback.get(req.params.id);
-
-            target
-                .then(result => {
-                    response.status(200, result, res);
-                })
-                .catch(e => {
-                    response.status(404, e, res);
-                });
-
-        }
-    )
-
-    //api/point/
-    routes.post(
-        '/',
-        passport.authenticate('jwt', {
-            session: false
-        }),
-        (req, res) => {
-
-            const target = feedback.add(req.body.payload);
-
-            target
-                .then(result => {
+                  .then(result => {
                     response.status(
-                        200,
-                        {
-                            message: 'Отзыв успешно добавлен',
-                            result
-                        },
-                        res);
-                })
-                .catch(e => {
-                    response.status(400, e, res);
-                });
+                      HttpStatus.OK,
+                      {
+                        message: 'Review successfully updated!',
+                        result
+                      },
+                      res);
+                  })
+                  .catch(e => {
+                    response.status(HttpStatus.BAD_REQUEST, e, res);
+                  });
+              })
+              .catch(e => {
+                response.status(HttpStatus.BAD_REQUEST, e, res);
+              });
+          })
+          .catch(e => {
+            response.status(HttpStatus.BAD_REQUEST, e, res);
+          });
 
-        }
-    );
+      } catch (e) {
+        response.status(HttpStatus.BAD_REQUEST, e, res);
+      }
 
-    //api/point/
-    routes.delete(
-        '/:id',
-        passport.authenticate('jwt', {
-            session: false
-        }),
-        (req, res) => {
+    }
+  );
 
-            const target = feedback.delete(req.params.id);
-
-            target
-                .then(result => {
-                    response.status(
-                        200,
-                        {
-                            message: 'Отзыв успешно удален',
-                            result
-                        },
-                        res);
-                })
-                .catch(e => {
-                    response.status(400, e, res);
-                });
-
-        }
-    );
-
-    //api/point/
-    routes.put(
-        '/:id',
-        passport.authenticate('jwt', {
-            session: false
-        }),
-        (req, res) => {
-
-            const target = feedback.update(req.params.id, req.body.payload);
-
-            target
-                .then(result => {
-                    response.status(
-                        200,
-                        {
-                            message: 'Отзыв успешно обновлен',
-                            result
-                        },
-                        res);
-                })
-                .catch(e => {
-                    response.status(400, e, res);
-                });
-
-        }
-    );
-
-    return routes;
+  return routes;
 
 }

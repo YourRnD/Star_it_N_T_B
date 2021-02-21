@@ -8,11 +8,11 @@ const client = new Client({
 });
 
 client.connect((error) => {
-    if(error) {
-        return console.log('Ошибка подключения к БД', error);
-    } else {
-        return console.log('Подключение успешно');
-    }
+  if (error) {
+    return console.log('Ошибка подключения к БД', error);
+  } else {
+    return console.log('Подключение успешно');
+  }
 });
 
 module.exports = client;
