@@ -12,7 +12,7 @@ module.exports = ({ db }) => ({
   delete: (_id) => {
     return db.query(
       `DELETE FROM feedback
-      WHERE idfeedback = $1`,
+      WHERE idfeedback = $1 RETURNING *`,
       [_id]
     );
   },

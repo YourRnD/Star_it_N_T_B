@@ -38,7 +38,12 @@ module.exports = ({ router, actions, db, validators }) => {
                 response.status(
                   HttpStatus.OK,
                   {
-                    message: 'Registration completed successfully!'
+                    message: 'Registration completed successfully!',
+                    user: {
+                      id: result.rows[0].idcustomer,
+                      name: result.rows[0].name,
+                      email: result.rows[0].email
+                    }
                   },
                   res);
               })
@@ -125,7 +130,17 @@ module.exports = ({ router, actions, db, validators }) => {
 
       target
         .then(result => {
-          response.status(HttpStatus.OK, result, res);
+          let users = result.rows.map((item) => {
+            return {
+              id: item.idcustomer,
+              name: item.name,
+              email: item.email
+            }
+          });
+          response.status(HttpStatus.OK, {
+            message: 'Users found!',
+            users
+          }, res);
         })
         .catch(e => {
           response.status(HttpStatus.BAD_REQUEST, e, res);
@@ -147,7 +162,17 @@ module.exports = ({ router, actions, db, validators }) => {
 
       target
         .then(result => {
-          response.status(HttpStatus.OK, result, res);
+          if (result.rows.length === 0) {
+            throw { message: 'User with this id does not exist!' };
+          }
+          response.status(HttpStatus.OK, {
+            message: 'User find!',
+            user: {
+              id: result.rows[0].idcustomer,
+              name: result.rows[0].name,
+              email: result.rows[0].email
+            }
+          }, res);
         })
         .catch(e => {
           response.status(HttpStatus.BAD_REQUEST, e, res);
@@ -168,16 +193,28 @@ module.exports = ({ router, actions, db, validators }) => {
       try {
         const reqData = customerValidate.delete(req.params.id);
 
-        const target = customer.delete(reqData);
-
-        target
+        customer.get(reqData)
           .then(result => {
-            response.status(
-              HttpStatus.OK,
-              {
-                message: 'User deleted successfully!'
-              },
-              res);
+            if (result.rows.length === 0) {
+              throw { message: 'User with this id does not exist!' };
+            }
+            customer.delete(reqData)
+              .then(result => {
+                response.status(
+                  HttpStatus.OK,
+                  {
+                    message: 'User deleted successfully!',
+                    user: {
+                      id: result.rows[0].idcustomer,
+                      name: result.rows[0].name,
+                      email: result.rows[0].email
+                    }
+                  },
+                  res);
+              })
+              .catch(e => {
+                response.status(HttpStatus.BAD_REQUEST, e, res);
+              });
           })
           .catch(e => {
             response.status(HttpStatus.BAD_REQUEST, e, res);
@@ -185,7 +222,6 @@ module.exports = ({ router, actions, db, validators }) => {
       } catch (e) {
         response.status(HttpStatus.BAD_REQUEST, e, res);
       }
-
 
     }
   );
@@ -204,22 +240,35 @@ module.exports = ({ router, actions, db, validators }) => {
 
         const salt = bcrypt.genSaltSync(15);
         const password = bcrypt.hashSync(reqData.password, salt);
-        const target = customer.update(
-          req.params.id,
-          {
-            ...reqData,
-            password
-          }
-        );
 
-        target
+        customer.get(req.params.id)
           .then(result => {
-            response.status(
-              HttpStatus.OK,
+            if (result.rows.length === 0) {
+              throw { message: 'User with this id does not exist!' };
+            }
+            customer.update(
+              req.params.id,
               {
-                message: 'User updated successfully!'
-              },
-              res);
+                ...reqData,
+                password
+              }
+            )
+              .then(result => {
+                response.status(
+                  HttpStatus.OK,
+                  {
+                    message: 'User updated successfully!',
+                    user: {
+                      id: result.rows[0].idcustomer,
+                      name: result.rows[0].name,
+                      email: result.rows[0].email
+                    }
+                  },
+                  res);
+              })
+              .catch(e => {
+                response.status(HttpStatus.BAD_REQUEST, e, res);
+              });
           })
           .catch(e => {
             response.status(HttpStatus.BAD_REQUEST, e, res);

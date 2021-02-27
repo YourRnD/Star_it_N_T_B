@@ -3,6 +3,7 @@
 module.exports = ({ router, actions, db, validators }) => {
 
   const passport = require('passport');
+  const HttpStatus = require('http-status-codes');
 
   const response = require('../common/response');
 
@@ -19,11 +20,19 @@ module.exports = ({ router, actions, db, validators }) => {
     }),
     (req, res) => {
 
-      const target = point.getAll();
-
-      target
+      point.getAll()
         .then(result => {
-          response.status(HttpStatus.OK, result, res);
+          let points = result.rows.map((item) => {
+            return {
+              id: item.idpoint,
+              name: item.name,
+              addres: item.address
+            }
+          });
+          response.status(HttpStatus.OK, {
+            message: 'Points find!',
+            points
+          }, res);
         })
         .catch(e => {
           response.status(HttpStatus.BAD_REQUEST, e, res);
@@ -41,11 +50,21 @@ module.exports = ({ router, actions, db, validators }) => {
     }),
     (req, res) => {
 
-      const target = point.get(req.params.id);
-
-      target
+      point.get(req.params.id)
         .then(result => {
-          response.status(HttpStatus.OK, result, res);
+          if (result.rows.length === 0) {
+            throw {
+              message: "Point with this id does not exist!"
+            };
+          }
+          response.status(HttpStatus.OK, {
+            message: 'Point find!',
+            point: {
+              id: result.rows[0].idpoint,
+              name: result.rows[0].name,
+              addres: result.rows[0].address
+            }
+          }, res);
         })
         .catch(e => {
           response.status(HttpStatus.BAD_REQUEST, e, res);
@@ -71,8 +90,12 @@ module.exports = ({ router, actions, db, validators }) => {
             response.status(
               HttpStatus.OK,
               {
-                message: 'Точка успешно добавлена',
-                result
+                message: 'Point added successfully!',
+                point: {
+                  id: result.rows[0].idpoint,
+                  name: result.rows[0].name,
+                  addres: result.rows[0].address
+                }
               },
               res);
           })
@@ -98,19 +121,36 @@ module.exports = ({ router, actions, db, validators }) => {
       try {
         const reqData = pointValidate.delete(req.params.id);
 
-        point.delete(reqData)
+        point.get(reqData)
           .then(result => {
-            response.status(
-              HttpStatus.OK,
-              {
-                message: 'Точка успешно удалена',
-                result
-              },
-              res);
+            if (result.rows.length === 0) {
+              throw {
+                message: "Point with this id does not exist!"
+              };
+            }
+
+            point.delete(reqData)
+              .then(result => {
+                response.status(
+                  HttpStatus.OK,
+                  {
+                    message: 'Point deleted successfully!',
+                    point: {
+                      id: result.rows[0].idpoint,
+                      name: result.rows[0].name,
+                      addres: result.rows[0].address
+                    }
+                  },
+                  res);
+              })
+              .catch(e => {
+                response.status(HttpStatus.BAD_REQUEST, e, res);
+              });
           })
           .catch(e => {
             response.status(HttpStatus.BAD_REQUEST, e, res);
           });
+
       } catch (e) {
         response.status(HttpStatus.BAD_REQUEST, e, res);
       }
@@ -128,17 +168,33 @@ module.exports = ({ router, actions, db, validators }) => {
     (req, res) => {
 
       try {
-        const reqData = pointValidate.delete(req.body.payload);
+        const reqData = pointValidate.update(req.params.id, req.body.payload);
 
-        point.update(req.params.id, reqData)
+        point.get(req.params.id)
           .then(result => {
-            response.status(
-              HttpStatus.OK,
-              {
-                message: 'Точка успешно обновлена',
-                result
-              },
-              res);
+            if (result.rows.length === 0) {
+              throw {
+                message: "Point with this id does not exist!"
+              };
+            }
+
+            point.update(req.params.id, reqData)
+              .then(result => {
+                response.status(
+                  HttpStatus.OK,
+                  {
+                    message: 'Point updated successfully!',
+                    point: {
+                      id: result.rows[0].idpoint,
+                      name: result.rows[0].name,
+                      addres: result.rows[0].address
+                    }
+                  },
+                  res);
+              })
+              .catch(e => {
+                response.status(HttpStatus.BAD_REQUEST, e, res);
+              });
           })
           .catch(e => {
             response.status(HttpStatus.BAD_REQUEST, e, res);

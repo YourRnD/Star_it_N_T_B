@@ -14,7 +14,7 @@ module.exports = ({ router, actions, db, validators }) => {
   const point = actions.point({ db });
   const { feedbackValidate } = validators.feedback;
 
-  //api/point/
+  //api/feedback/
   routes.get(
     '/',
     passport.authenticate('jwt', {
@@ -27,7 +27,28 @@ module.exports = ({ router, actions, db, validators }) => {
 
       target
         .then(result => {
-          response.status(HttpStatus.OK, result, res);
+          let feedback = result.rows.map((item) => {
+            return {
+              id: item.idfeedback,
+              date: item.date,
+              notes: item.notes,
+              rating: item.rating,
+              user: {
+                id: item.idcustomer,
+                name: item.name,
+                email: item.email
+              },
+              point: {
+                id: item.idpoint,
+                name: item.name,
+                addres: item.address
+              }
+            }
+          });
+          response.status(HttpStatus.OK, {
+            message: 'Feedback find!',
+            feedback
+          }, res);
         })
         .catch(e => {
           response.status(HttpStatus.BAD_REQUEST, e, res);
@@ -36,7 +57,7 @@ module.exports = ({ router, actions, db, validators }) => {
     }
   )
 
-  //api/point/:id
+  //api/feedback/:id
   routes.get(
     '/:id',
     passport.authenticate('jwt', {
@@ -49,7 +70,30 @@ module.exports = ({ router, actions, db, validators }) => {
 
       target
         .then(result => {
-          response.status(HttpStatus.OK, result, res);
+          if (result.rows.length === 0) {
+            throw {
+              message: "Feedback with this id does not exist!"
+            };
+          }
+          response.status(HttpStatus.OK, {
+            message: 'Feedback find!',
+            feedback: {
+              id: result.rows[0].idfeedback,
+              date: result.rows[0].date,
+              notes: result.rows[0].notes,
+              rating: result.rows[0].rating,
+              user: {
+                id: result.rows[0].idcustomer,
+                name: result.rows[0].name,
+                email: result.rows[0].email
+              },
+              point: {
+                id: result.rows[0].idpoint,
+                name: result.rows[0].name,
+                addres: result.rows[0].address
+              }
+            }
+          }, res);
         })
         .catch(e => {
           response.status(HttpStatus.BAD_REQUEST, e, res);
@@ -58,7 +102,7 @@ module.exports = ({ router, actions, db, validators }) => {
     }
   )
 
-  //api/point/
+  //api/feedback/
   routes.post(
     '/',
     passport.authenticate('jwt', {
@@ -93,7 +137,22 @@ module.exports = ({ router, actions, db, validators }) => {
                   HttpStatus.OK,
                   {
                     message: 'Review added successfully!',
-                    result
+                    feedback: {
+                      id: result.rows[0].idfeedback,
+                      date: result.rows[0].date,
+                      notes: result.rows[0].notes,
+                      rating: result.rows[0].rating,
+                      user: {
+                        id: result.rows[0].idcustomer,
+                        name: result.rows[0].name,
+                        email: result.rows[0].email
+                      },
+                      point: {
+                        id: result.rows[0].idpoint,
+                        name: result.rows[0].name,
+                        addres: result.rows[0].address
+                      }
+                    }
                   },
                   res);
               })
@@ -113,7 +172,7 @@ module.exports = ({ router, actions, db, validators }) => {
     }
   );
 
-  //api/point/
+  //api/feedback/
   routes.delete(
     '/:id',
     passport.authenticate('jwt', {
@@ -147,7 +206,22 @@ module.exports = ({ router, actions, db, validators }) => {
                   HttpStatus.OK,
                   {
                     message: 'Review successfully deleted!',
-                    result
+                    feedback: {
+                      id: result.rows[0].idfeedback,
+                      date: result.rows[0].date,
+                      notes: result.rows[0].notes,
+                      rating: result.rows[0].rating,
+                      user: {
+                        id: result.rows[0].idcustomer,
+                        name: result.rows[0].name,
+                        email: result.rows[0].email
+                      },
+                      point: {
+                        id: result.rows[0].idpoint,
+                        name: result.rows[0].name,
+                        addres: result.rows[0].address
+                      }
+                    }
                   },
                   res);
               })
@@ -167,7 +241,7 @@ module.exports = ({ router, actions, db, validators }) => {
     }
   );
 
-  //api/point/
+  //api/feedback/
   routes.put(
     '/:id',
     passport.authenticate('jwt', {
@@ -177,12 +251,12 @@ module.exports = ({ router, actions, db, validators }) => {
     (req, res) => {
 
       try {
-        const reqData = feedbackValidate.update(+req.params.id, req.body.payload);
+        const reqData = feedbackValidate.update(req.params.id, req.body.payload);
 
         const token = req.headers.authorization.split('Bearer ').join('');
         const idCustomer = jwt.verify(token, config.jwt).userId;
 
-        feedback.get(reqData)
+        feedback.get(req.params.id)
           .then(result => {
 
             if (result.rows.length === 0) {
@@ -191,7 +265,7 @@ module.exports = ({ router, actions, db, validators }) => {
               }
             } else if (result.rows[0].idcustomer != idCustomer) {
               throw {
-                message: 'You cannot delete reviews of other users!'
+                message: 'You cannot change reviews of other users!'
               }
             }
             point.get(reqData.idPoint)
@@ -213,7 +287,22 @@ module.exports = ({ router, actions, db, validators }) => {
                       HttpStatus.OK,
                       {
                         message: 'Review successfully updated!',
-                        result
+                        feedback: {
+                          id: result.rows[0].idfeedback,
+                          date: result.rows[0].date,
+                          notes: result.rows[0].notes,
+                          rating: result.rows[0].rating,
+                          user: {
+                            id: result.rows[0].idcustomer,
+                            name: result.rows[0].name,
+                            email: result.rows[0].email
+                          },
+                          point: {
+                            id: result.rows[0].idpoint,
+                            name: result.rows[0].name,
+                            addres: result.rows[0].address
+                          }
+                        }
                       },
                       res);
                   })

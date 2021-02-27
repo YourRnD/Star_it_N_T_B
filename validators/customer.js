@@ -42,7 +42,7 @@ class CustomerValidate {
   }
 
   delete(_id) {
-    if (!_.isInteger(_id)) {
+    if (!validator.isInt(`${_id}`)) {
       throw ValidationError('id', '"id" can only be an integer!');
     }
 
@@ -50,7 +50,7 @@ class CustomerValidate {
   }
 
   update(_id, payload) {
-    if (!_.isInteger(_id)) {
+    if (!validator.isInt(`${_id}`)) {
       throw ValidationError('id', '"id" can only be an integer!');
     }
 

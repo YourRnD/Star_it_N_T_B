@@ -13,27 +13,27 @@ class PointValidate {
       throw ValidationError('payload', '"payload" is required!');
     }
 
-    if (!payload.address) {
-      throw ValidationError('address', '"payload.address" is required!');
-    }
-
     if (!payload.name) {
       throw ValidationError('name', '"payload.name" is required!');
     }
 
-    if (!_.isString(payload.address)) {
-      throw ValidationError('address', '"payload.address" can only be a string!');
+    if (!payload.address) {
+      throw ValidationError('address', '"payload.address" is required!');
     }
 
     if (!_.isString(payload.name)) {
       throw ValidationError('name', '"payload.name" can only be a string!');
     }
 
+    if (!_.isString(payload.address)) {
+      throw ValidationError('address', '"payload.address" can only be a string!');
+    }
+
     return _.pick(payload, pointFields);
   }
 
   delete(_id) {
-    if (!_.isInteger(_id)) {
+    if (!validator.isInt(`${_id}`)) {
       throw ValidationError('id', '"id" can only be an integer!');
     }
 
@@ -41,7 +41,7 @@ class PointValidate {
   }
 
   update(_id, payload) {
-    if (!_.isInteger(_id)) {
+    if (!validator.isInt(`${_id}`)) {
       throw ValidationError('id', '"id" can only be an integer!');
     }
 
@@ -49,20 +49,20 @@ class PointValidate {
       throw ValidationError('payload', '"payload" is required!');
     }
 
-    if (!payload.address) {
-      throw ValidationError('address', '"payload.address" is required!');
-    }
-
     if (!payload.name) {
       throw ValidationError('name', '"payload.name" is required!');
     }
 
-    if (!_.isString(payload.address)) {
-      throw ValidationError('address', '"payload.address" can only be a string!');
+    if (!payload.address) {
+      throw ValidationError('address', '"payload.address" is required!');
     }
 
     if (!_.isString(payload.name)) {
       throw ValidationError('name', '"payload.name" can only be a string!');
+    }
+
+    if (!_.isString(payload.address)) {
+      throw ValidationError('address', '"payload.address" can only be a string!');
     }
 
     return _.pick(payload, pointFields);

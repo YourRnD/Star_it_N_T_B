@@ -11,16 +11,14 @@ module.exports = ({ db }) => ({
 
   delete: (_id) => {
     return db.query(
-      `DELETE FROM customer
-      WHERE idcustomer = $1`,
+      `DELETE FROM customer 
+      WHERE idcustomer = $1 RETURNING *`,
       [_id]
     );
   },
 
   update: (_id, payload) => {
     const { name, email, password } = payload;
-
-    console.log(payload);
 
     return db.query(
       `UPDATE customer 
@@ -32,14 +30,14 @@ module.exports = ({ db }) => ({
 
   get: (_id) => {
     return db.query(
-      `SELECT idcustomer, name FROM customer
+      `SELECT idcustomer, name, email FROM customer
       WHERE idcustomer = $1`,
       [_id]
     );
   },
 
   getAll: () => {
-    return db.query(`SELECT idcustomer, name FROM customer`);
+    return db.query(`SELECT idcustomer, name, email FROM customer`);
   },
 
   getUserByEmail: (payload) => {

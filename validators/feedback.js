@@ -26,11 +26,11 @@ class FeedbackValidate {
       throw ValidationError('notes', '"payload.notes" is required!');
     }
 
-    if (!_.isInteger(payload.idPoint)) {
+    if (!validator.isInt(`${payload.idPoint}`)) {
       throw ValidationError('idPoint', '"payload.idPoint" can only be an integer!');
     }
 
-    if (!_.isInteger(payload.rating)) {
+    if (!validator.isInt(`${payload.rating}`)) {
       throw ValidationError('rating', '"payload.rating" can only be an integer!');
     }
 
@@ -46,7 +46,7 @@ class FeedbackValidate {
   }
 
   delete(_id) {
-    if (!_.isInteger(_id)) {
+    if (!validator.isInt(`${_id}`)) {
       throw ValidationError('id', '"id" can only be an integer!');
     }
 
@@ -54,7 +54,7 @@ class FeedbackValidate {
   }
 
   update(_id, payload) {
-    if (!_.isInteger(_id)) {
+    if (!validator.isInt(`${_id}`)) {
       throw ValidationError('id', '"id" can only be an integer!');
     }
 
@@ -74,11 +74,11 @@ class FeedbackValidate {
       throw ValidationError('notes', '"payload.notes" is required!');
     }
 
-    if (!validator.isInt(payload.idPoint)) {
+    if (!validator.isInt(`${payload.idPoint}`)) {
       throw ValidationError('idPoint', '"payload.idPoint" can only be an integer!');
     }
 
-    if (!validator.isInt(payload.rating)) {
+    if (!validator.isInt(`${payload.rating}`)) {
       throw ValidationError('rating', '"payload.rating" can only be an integer!');
     }
 
@@ -86,7 +86,7 @@ class FeedbackValidate {
       throw ValidationError('notes', '"payload.notes" can only be a string!');
     }
 
-    if (payload.rating >= 1 && payload.rating <= 5) {
+    if (!(payload.rating >= 1 && payload.rating <= 5)) {
       throw ValidationError('rating', '"payload.rating" can only take values from 1 to 5 (inclusive)!');
     }
 
