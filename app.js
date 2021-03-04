@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 const inject = require('require-all');
@@ -8,6 +9,7 @@ const db = require('./settings/db');
 const app = express();
 const router = express.Router;
 
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());

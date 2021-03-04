@@ -60,9 +60,6 @@ module.exports = ({ router, actions, db, validators }) => {
     } catch (e) {
       response.status(HttpStatus.BAD_REQUEST, e, res);
     }
-
-
-
   });
 
   //api/customer/signin
