@@ -65,7 +65,7 @@ module.exports = ({ router, actions, db, validators }) => {
   //api/customer/signin
   routes.get('/signin', (req, res) => {
 
-    customer.getUserByEmail(req.body.payload)
+    customer.getUserByEmail(req.query)
       .then(result => {
 
         if (result.rows.length <= 0) {
@@ -78,7 +78,7 @@ module.exports = ({ router, actions, db, validators }) => {
           );
         } else {
           const row = JSON.parse(JSON.stringify(result.rows))[0];
-          const password = bcrypt.compareSync(req.body.payload.password, row.password);
+          const password = bcrypt.compareSync(req.query.password, row.password);
 
           if (password) {
             const token = jwt.sign({
