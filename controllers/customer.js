@@ -92,7 +92,12 @@ module.exports = ({ router, actions, db, validators }) => {
               HttpStatus.OK,
               {
                 message: 'User found!',
-                token: `Bearer ${token}`
+                token: `Bearer ${token}`,
+                user: {
+                  id: result.rows[0].idcustomer,
+                  name: result.rows[0].name,
+                  email: result.rows[0].email
+                }
               },
               res
             );
