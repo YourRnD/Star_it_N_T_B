@@ -29,13 +29,7 @@ test('Create new user', async () => {
 test('Login new user', async () => {
 
   let res = await request(app)
-    .get('/api/customer/signin')
-    .send({
-      "payload": {
-        "email": "testWithAnotherUserId.mail@gmail.com",
-        "password": "Qwerty_12345"
-      }
-    });
+    .get('/api/customer/signin?email=testWithAnotherUserId.mail@gmail.com&password=Qwerty_12345');
 
   token = res.body.token;
 
@@ -94,13 +88,7 @@ test('Create new user', async () => {
 test('Login new user', async () => {
 
   let res = await request(app)
-    .get('/api/customer/signin')
-    .send({
-      "payload": {
-        "email": "testFeedback.mail@gmail.com",
-        "password": "Qwerty_12345"
-      }
-    });
+    .get('/api/customer/signin?email=testFeedback.mail@gmail.com&password=Qwerty_12345');
 
   token = res.body.token;
 
@@ -583,13 +571,7 @@ test('Delete user!', async () => {
 test('Login new user', async () => {
 
   let res = await request(app)
-    .get('/api/customer/signin')
-    .send({
-      "payload": {
-        "email": "testWithAnotherUserId.mail@gmail.com",
-        "password": "Qwerty_12345"
-      }
-    });
+    .get('/api/customer/signin?email=testWithAnotherUserId.mail@gmail.com&password=Qwerty_12345');
 
   token = res.body.token;
 

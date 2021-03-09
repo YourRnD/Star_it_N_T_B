@@ -35,9 +35,18 @@ module.exports = ({ db }) => ({
     );
   },
 
-  getAll: () => {
+  getAll: (pageStart) => {
     return db.query(
-      `SELECT * FROM point`
+      `SELECT * FROM point
+      LIMIT 10 OFFSET ${pageStart}`
+    );
+  },
+
+  search: (pageStart, value) => {
+    return db.query(
+      `SELECT * FROM point
+      WHERE name @@ '${value}'
+      LIMIT 10 OFFSET ${pageStart}`
     );
   }
 });

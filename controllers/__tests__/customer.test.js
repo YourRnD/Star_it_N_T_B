@@ -142,13 +142,7 @@ test('Success! Add new user', async () => {
 
 test('Login failed: email is not correctly', async () => {
   const res = await request(app)
-    .get('/api/customer/signin')
-    .send({
-      "payload": {
-        "email": "test.mail123@gmail.com",
-        "password": "Qwerty_12345"
-      }
-    });
+    .get('/api/customer/signin?email=test.mail123@gmail.com&password=Qwerty_12345');
 
   expect(res.status).toEqual(400);
   expect(res.body.message).toMatch('Email or password is incorrect!');
@@ -156,13 +150,7 @@ test('Login failed: email is not correctly', async () => {
 
 test('Login failed: password is not correctly', async () => {
   const res = await request(app)
-    .get('/api/customer/signin')
-    .send({
-      "payload": {
-        "email": "test.mail@gmail.com",
-        "password": "123"
-      }
-    });
+    .get('/api/customer/signin?email=test.mail123@gmail.com&password=123');
 
   expect(res.status).toEqual(400);
   expect(res.body.message).toMatch('Email or password is incorrect!');
@@ -170,13 +158,7 @@ test('Login failed: password is not correctly', async () => {
 
 test('Success! Login', async () => {
   const res = await request(app)
-    .get('/api/customer/signin')
-    .send({
-      "payload": {
-        "email": "testCustomer.mail@gmail.com",
-        "password": "Qwerty_12345"
-      }
-    });
+    .get('/api/customer/signin?email=testCustomer.mail@gmail.com&password=Qwerty_12345');
 
   expect(res.status).toEqual(200);
   expect(res.body.message).toMatch('User found!');

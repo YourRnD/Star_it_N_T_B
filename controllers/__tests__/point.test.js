@@ -26,13 +26,7 @@ test('Create new user', async () => {
 test('Login new user', async () => {
 
   let res = await request(app)
-    .get('/api/customer/signin')
-    .send({
-      "payload": {
-        "email": "testPoint.mail@gmail.com",
-        "password": "Qwerty_12345"
-      }
-    });
+    .get('/api/customer/signin?email=testPoint.mail@gmail.com&password=Qwerty_12345');
 
   token = res.body.token;
 
@@ -151,13 +145,73 @@ test('Success! Get a point by id', async () => {
   expect(res.body.message).toMatch('Point find!');
 });
 
-
-
 // GET api/point/
+
+test('Error! Get all the points: params has no "pageNumber" property', async () => {
+  const res = await request(app)
+    .get(`/api/point`)
+    .set({ 'Authorization': token });
+
+  expect(res.status).toEqual(400);
+  expect(res.body.param).toMatch('pageNumber');
+  expect(res.body.message).toMatch('"params.pageNumber" is required!');
+});
+
+test('Error! Get all the points: property "pageNumber" can only be an integer', async () => {
+  const res = await request(app)
+    .get(`/api/point?pageNumber=asd`)
+    .set({ 'Authorization': token });
+
+  expect(res.status).toEqual(400);
+  expect(res.body.param).toMatch('pageNumber');
+  expect(res.body.message).toMatch('"params.pageNumber" can only be an integer!');
+});
 
 test('Success! Get all the points', async () => {
   const res = await request(app)
-    .get(`/api/point`)
+    .get(`/api/point?pageNumber=0`)
+    .set({ 'Authorization': token });
+
+  expect(res.status).toEqual(200);
+  expect(res.body).toHaveProperty('points');
+  expect(res.body.message).toMatch('Points find!');
+});
+
+// GET api/point/search
+
+test('Error! Search points: params has no "pageNumber" property', async () => {
+  const res = await request(app)
+    .get(`/api/point/search`)
+    .set({ 'Authorization': token });
+
+  expect(res.status).toEqual(400);
+  expect(res.body.param).toMatch('pageNumber');
+  expect(res.body.message).toMatch('"params.pageNumber" is required!');
+});
+
+test('Error! Search points: params has no "value" property', async () => {
+  const res = await request(app)
+    .get(`/api/point/search?pageNumber=0`)
+    .set({ 'Authorization': token });
+
+  expect(res.status).toEqual(400);
+  expect(res.body.param).toMatch('value');
+  expect(res.body.message).toMatch('"params.value" is required!');
+});
+
+test('Error! Search points: property "pageNumber" can only be an integer', async () => {
+  const res = await request(app)
+    .get(`/api/point/search?pageNumber=asd&value=123`)
+    .set({ 'Authorization': token });
+
+  expect(res.status).toEqual(400);
+  expect(res.body.param).toMatch('pageNumber');
+  expect(res.body.message).toMatch('"params.pageNumber" can only be an integer!');
+});
+
+test('Success! Search points', async () => {
+  const res = await request(app)
+    .get(`/api/point/search?pageNumber=0&value=Test point`)
     .set({ 'Authorization': token });
 
   expect(res.status).toEqual(200);

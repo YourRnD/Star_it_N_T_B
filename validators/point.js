@@ -5,6 +5,8 @@ const ValidationError = require('./../common/ValidationError');
 const pointFields = [
   'address',
   'name',
+  'pageNumber',
+  'value',
 ];
 
 class PointValidate {
@@ -66,6 +68,34 @@ class PointValidate {
     }
 
     return _.pick(payload, pointFields);
+  }
+
+  get(params) {
+    if (!params.pageNumber) {
+      throw ValidationError('pageNumber', '"params.pageNumber" is required!');
+    }
+
+    if (!validator.isInt(`${params.pageNumber}`)) {
+      throw ValidationError('pageNumber', '"params.pageNumber" can only be an integer!');
+    }
+
+    return _.pick(params, pointFields);
+  }
+
+  search(params) {
+    if (!params.pageNumber) {
+      throw ValidationError('pageNumber', '"params.pageNumber" is required!');
+    }
+
+    if (!params.value) {
+      throw ValidationError('value', '"params.value" is required!');
+    }
+
+    if (!validator.isInt(`${params.pageNumber}`)) {
+      throw ValidationError('pageNumber', '"params.pageNumber" can only be an integer!');
+    }
+
+    return _.pick(params, pointFields);
   }
 }
 

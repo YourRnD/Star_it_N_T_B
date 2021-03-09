@@ -20,23 +20,65 @@ module.exports = ({ router, actions, db, validators }) => {
     }),
     (req, res) => {
 
-      point.getAll()
-        .then(result => {
-          let points = result.rows.map((item) => {
-            return {
-              id: item.idpoint,
-              name: item.name,
-              addres: item.address
-            }
+      try {
+        const reqData = pointValidate.get(req.query);
+
+        point.getAll(reqData.pageNumber * 5)
+          .then(result => {
+            let points = result.rows.map((item) => {
+              return {
+                id: item.idpoint,
+                name: item.name,
+                addres: item.address
+              }
+            });
+            response.status(HttpStatus.OK, {
+              message: 'Points find!',
+              points
+            }, res);
+          })
+          .catch(e => {
+            response.status(HttpStatus.BAD_REQUEST, e, res);
           });
-          response.status(HttpStatus.OK, {
-            message: 'Points find!',
-            points
-          }, res);
-        })
-        .catch(e => {
-          response.status(HttpStatus.BAD_REQUEST, e, res);
-        });
+      } catch (e) {
+        response.status(HttpStatus.BAD_REQUEST, e, res);
+      }
+
+    }
+  )
+
+  //api/point/search
+  routes.get(
+    '/search',
+    passport.authenticate('jwt', {
+      session: false,
+      failureRedirect: '/login'
+    }),
+    (req, res) => {
+
+      try {
+        const reqData = pointValidate.search(req.query);
+
+        point.search(reqData.pageNumber * 5, reqData.value)
+          .then(result => {
+            let points = result.rows.map((item) => {
+              return {
+                id: item.idpoint,
+                name: item.name,
+                addres: item.address
+              }
+            });
+            response.status(HttpStatus.OK, {
+              message: 'Points find!',
+              points
+            }, res);
+          })
+          .catch(e => {
+            response.status(HttpStatus.BAD_REQUEST, e, res);
+          });
+      } catch (e) {
+        response.status(HttpStatus.BAD_REQUEST, e, res);
+      }
 
     }
   )
