@@ -1,36 +1,36 @@
 module.exports = ({ db }) => ({
   add: (payload) => {
-    const { address, name } = payload;
+    const { name, path } = payload;
 
     return db.query(
-      `INSERT INTO point(name, address)
+      `INSERT INTO business(name, path)
       VALUES ($1, $2) RETURNING *`,
-      [name, address]
+      [name, path]
     );
   },
 
   delete: (_id) => {
     return db.query(
-      `DELETE FROM point
-      WHERE idpoint = $1 RETURNING *`,
+      `DELETE FROM business
+      WHERE idbusiness = $1 RETURNING *`,
       [_id]
     );
   },
 
   update: (_id, payload) => {
-    const { address, name } = payload;
+    const { name, path } = payload;
 
     return db.query(
-      `UPDATE point SET name = $1, address = $2
-      WHERE idpoint = $3 RETURNING *`,
-      [name, address, _id]
+      `UPDATE business SET name = $1, path = $2
+      WHERE idbusiness = $3 RETURNING *`,
+      [name, path, _id]
     );
   },
 
   get: (_id) => {
     return db.query(
-      `SELECT * FROM point
-      WHERE idpoint = $1`,
+      `SELECT * FROM business
+      WHERE idbusiness = $1`,
       [_id]
     );
   },
@@ -38,8 +38,8 @@ module.exports = ({ db }) => ({
   getAll: (pageStart) => {
     return db.query(
       `SELECT *, (
-        SELECT COUNT(*) FROM point
-      ) as count_rows FROM point
+        SELECT COUNT(*) FROM business
+      ) as count_rows FROM business
       LIMIT 10 OFFSET ${pageStart}`
     );
   },
@@ -47,8 +47,8 @@ module.exports = ({ db }) => ({
   search: (pageStart, value) => {
     return db.query(
       `SELECT *, (
-        SELECT COUNT(*) FROM point
-      ) as count_rows FROM point
+        SELECT COUNT(*) FROM business
+      ) as count_rows FROM business
       WHERE name @@ '${value}'
       LIMIT 10 OFFSET ${pageStart}`
     );

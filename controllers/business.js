@@ -2,16 +2,17 @@
 
 module.exports = ({ router, actions, db, validators }) => {
 
+  const response = require('../common/response');
+  const photo = require('../common/workWithPhotos');
+
   const passport = require('passport');
   const HttpStatus = require('http-status-codes');
 
-  const response = require('../common/response');
-
   const routes = router();
-  const point = actions.point({ db });
-  const { pointValidate } = validators.point;
+  const business = actions.business({ db });
+  const { businessValidate } = validators.business;
 
-  //api/point/
+  //api/business/
   routes.get(
     '/',
     passport.authenticate('jwt', {
@@ -21,25 +22,25 @@ module.exports = ({ router, actions, db, validators }) => {
     (req, res) => {
 
       try {
-        const reqData = pointValidate.get(req.query);
+        const reqData = businessValidate.get(req.query);
 
-        point.getAll(reqData.pageNumber * 10)
+        business.getAll(reqData.pageNumber * 10)
           .then(result => {
             if (result.rows.length === 0) {
               throw {
                 message: 'No records found!'
               }
             }
-            let points = result.rows.map((item) => {
+            let businesses = result.rows.map((item) => {
               return {
-                id: item.idpoint,
+                id: item.idbusiness,
                 name: item.name,
-                addres: item.address
+                path: item.path,
               }
             });
             response.status(HttpStatus.OK, {
-              message: 'Points find!',
-              points,
+              message: 'Businesses find!',
+              businesses,
               countPages: Math.ceil(result.rows[0].count_rows / 10)
             }, res);
           })
@@ -53,7 +54,7 @@ module.exports = ({ router, actions, db, validators }) => {
     }
   )
 
-  //api/point/search
+  //api/business/search
   routes.get(
     '/search',
     passport.authenticate('jwt', {
@@ -63,25 +64,25 @@ module.exports = ({ router, actions, db, validators }) => {
     (req, res) => {
 
       try {
-        const reqData = pointValidate.search(req.query);
+        const reqData = businessValidate.search(req.query);
 
-        point.search(reqData.pageNumber * 10, reqData.value)
+        business.search(reqData.pageNumber * 10, reqData.value)
           .then(result => {
             if (result.rows.length === 0) {
               throw {
                 message: 'No records found!'
               }
             }
-            let points = result.rows.map((item) => {
+            let businesses = result.rows.map((item) => {
               return {
-                id: item.idpoint,
+                id: item.idbusiness,
                 name: item.name,
-                addres: item.address
+                path: item.path
               }
             });
             response.status(HttpStatus.OK, {
-              message: 'Points find!',
-              points,
+              message: 'Businesses find!',
+              businesses,
               countPages: Math.ceil(result.rows[0].count_rows / 10)
             }, res);
           })
@@ -95,7 +96,7 @@ module.exports = ({ router, actions, db, validators }) => {
     }
   )
 
-  //api/point/:id
+  //api/business/:id
   routes.get(
     '/:id',
     passport.authenticate('jwt', {
@@ -104,19 +105,19 @@ module.exports = ({ router, actions, db, validators }) => {
     }),
     (req, res) => {
 
-      point.get(req.params.id)
+      business.get(req.params.id)
         .then(result => {
           if (result.rows.length === 0) {
             throw {
-              message: "Point with this id does not exist!"
+              message: "Business with this id does not exist!"
             };
           }
           response.status(HttpStatus.OK, {
-            message: 'Point find!',
-            point: {
-              id: result.rows[0].idpoint,
+            message: 'Business find!',
+            business: {
+              id: result.rows[0].idbusiness,
               name: result.rows[0].name,
-              addres: result.rows[0].address
+              path: result.rows[0].path
             }
           }, res);
         })
@@ -127,28 +128,35 @@ module.exports = ({ router, actions, db, validators }) => {
     }
   )
 
-  //api/point/
+  //api/business/
   routes.post(
     '/',
     passport.authenticate('jwt', {
       session: false,
       failureRedirect: '/login'
     }),
-    (req, res) => {
-
+    async (req, res) => {
       try {
-        const reqData = pointValidate.add(req.body.payload);
 
-        point.add(reqData)
+        const reqData = businessValidate.add(req.body.payload);
+
+        const uploadPath = await photo.uploadPhotoFunc({
+          ...reqData
+        });
+
+        business.add({
+          ...reqData,
+          path: uploadPath,
+        })
           .then(result => {
             response.status(
               HttpStatus.OK,
               {
-                message: 'Point added successfully!',
-                point: {
-                  id: result.rows[0].idpoint,
+                message: 'Business added successfully!',
+                business: {
+                  id: result.rows[0].idbusiness,
                   name: result.rows[0].name,
-                  addres: result.rows[0].address
+                  path: result.rows[0].path
                 }
               },
               res);
@@ -156,6 +164,7 @@ module.exports = ({ router, actions, db, validators }) => {
           .catch(e => {
             response.status(HttpStatus.BAD_REQUEST, e, res);
           });
+
       } catch (e) {
         response.status(HttpStatus.BAD_REQUEST, e, res);
       }
@@ -163,7 +172,7 @@ module.exports = ({ router, actions, db, validators }) => {
     }
   );
 
-  //api/point/
+  //api/business/
   routes.delete(
     '/:id',
     passport.authenticate('jwt', {
@@ -173,26 +182,31 @@ module.exports = ({ router, actions, db, validators }) => {
     (req, res) => {
 
       try {
-        const reqData = pointValidate.delete(req.params.id);
+        const reqData = businessValidate.delete(req.params.id);
 
-        point.get(reqData)
+        business.get(reqData)
           .then(result => {
             if (result.rows.length === 0) {
               throw {
-                message: "Point with this id does not exist!"
+                message: "Business with this id does not exist!"
               };
             }
-
-            point.delete(reqData)
+            if (!photo.checkPuthFunc({ path: result.rows[0].path })) {
+              throw {
+                message: "The path is incorrect"
+              }
+            }
+            business.delete(reqData)
               .then(result => {
+                photo.deletePhotoFunc({ path: result.rows[0].path });
                 response.status(
                   HttpStatus.OK,
                   {
-                    message: 'Point deleted successfully!',
-                    point: {
-                      id: result.rows[0].idpoint,
+                    message: 'Business deleted successfully!',
+                    business: {
+                      id: result.rows[0].idbusiness,
                       name: result.rows[0].name,
-                      addres: result.rows[0].address
+                      path: result.rows[0].path
                     }
                   },
                   res);
@@ -212,36 +226,61 @@ module.exports = ({ router, actions, db, validators }) => {
     }
   );
 
-  //api/point/
+  //api/business/
   routes.put(
     '/:id',
     passport.authenticate('jwt', {
       session: false,
       failureRedirect: '/login'
     }),
-    (req, res) => {
-
+    async (req, res) => {
       try {
-        const reqData = pointValidate.update(req.params.id, req.body.payload);
 
-        point.get(req.params.id)
+        const reqData = businessValidate.update(req.params.id, req.body.payload);
+
+        let uploadPath = '';
+        if (req.body.payload.image) {
+          uploadPath = photo.uploadPhotoFunc({
+            ...reqData
+          });
+        }
+
+        business.get(req.params.id)
           .then(result => {
             if (result.rows.length === 0) {
               throw {
-                message: "Point with this id does not exist!"
+                message: "Business with this id does not exist!"
               };
             }
-
-            point.update(req.params.id, reqData)
+            const oldPath = result.rows[0].path;
+            if (photo.checkPuthFunc({ path: oldPath })) {
+              if (uploadPath === '') {
+                uploadPath = oldPath;
+              }
+            } else {
+              throw {
+                message: "The path is incorrect"
+              }
+            }
+            business.update(
+              req.params.id,
+              {
+                ...reqData,
+                path: uploadPath,
+              }
+            )
               .then(result => {
+                if (photo.checkPuthFunc({ path: oldPath })) {
+                  photo.deletePhotoFunc({ path: oldPath });
+                }
                 response.status(
                   HttpStatus.OK,
                   {
-                    message: 'Point updated successfully!',
-                    point: {
-                      id: result.rows[0].idpoint,
+                    message: 'Business updated successfully!',
+                    business: {
+                      id: result.rows[0].idbusiness,
                       name: result.rows[0].name,
-                      addres: result.rows[0].address
+                      path: result.rows[0].path
                     }
                   },
                   res);
@@ -261,4 +300,5 @@ module.exports = ({ router, actions, db, validators }) => {
   );
 
   return routes;
+
 }

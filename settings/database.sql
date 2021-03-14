@@ -11,6 +11,12 @@ create TABLE Point(
     address CHARACTER VARYING(100)
 );
 
+create TABLE Business(
+    idBusiness SERIAL PRIMARY KEY,
+    name CHARACTER VARYING(50),
+    path CHARACTER VARYING(200),
+);
+
 create TABLE FeedBack(
     idFeedback SERIAL PRIMARY KEY,
     idCustomer INTEGER REFERENCES Customer (idCustomer),

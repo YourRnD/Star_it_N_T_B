@@ -5,13 +5,15 @@ const passport = require('passport');
 const inject = require('require-all');
 
 const db = require('./settings/db');
+const config = require('./config');
 
 const app = express();
 const router = express.Router;
 
+app.use(bodyParser.json({ limit: '3mb' }));
+app.use(bodyParser.urlencoded({ limit: '3mb', extended: true }));
+app.use("/assets", express.static(config.rootPath + '/assets'));
 app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
 require('./middleware/passport')(passport);
 

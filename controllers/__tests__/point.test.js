@@ -167,6 +167,25 @@ test('Error! Get all the points: property "pageNumber" can only be an integer', 
   expect(res.body.message).toMatch('"params.pageNumber" can only be an integer!');
 });
 
+test('Error! Get all the point: property "pageNumber" cannot be less than zero', async () => {
+  const res = await request(app)
+    .get(`/api/point?pageNumber=-1`)
+    .set({ 'Authorization': token });
+
+  expect(res.status).toEqual(400);
+  expect(res.body.param).toMatch('pageNumber');
+  expect(res.body.message).toMatch('"params.pageNumber" cannot be less than zero!');
+});
+
+test('Error! Get all the point: no records found!', async () => {
+  const res = await request(app)
+    .get(`/api/point?pageNumber=100000000000000`)
+    .set({ 'Authorization': token });
+
+  expect(res.status).toEqual(400);
+  expect(res.body.message).toMatch('No records found!');
+});
+
 test('Success! Get all the points', async () => {
   const res = await request(app)
     .get(`/api/point?pageNumber=0`)
@@ -207,6 +226,25 @@ test('Error! Search points: property "pageNumber" can only be an integer', async
   expect(res.status).toEqual(400);
   expect(res.body.param).toMatch('pageNumber');
   expect(res.body.message).toMatch('"params.pageNumber" can only be an integer!');
+});
+
+test('Error! Search points: property "pageNumber" cannot be less than zero', async () => {
+  const res = await request(app)
+    .get(`/api/point/search?pageNumber=-1&value=Test point`)
+    .set({ 'Authorization': token });
+
+  expect(res.status).toEqual(400);
+  expect(res.body.param).toMatch('pageNumber');
+  expect(res.body.message).toMatch('"params.pageNumber" cannot be less than zero!');
+});
+
+test('Error! Search points: no records found!', async () => {
+  const res = await request(app)
+    .get(`/api/point/search?pageNumber=100000000000000&value=Test point`)
+    .set({ 'Authorization': token });
+
+  expect(res.status).toEqual(400);
+  expect(res.body.message).toMatch('No records found!');
 });
 
 test('Success! Search points', async () => {

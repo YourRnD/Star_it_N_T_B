@@ -1,15 +1,16 @@
 const validator = require('validator');
 const _ = require('lodash');
-const ValidationError = require('./../common/ValidationError');
+const ValidationError = require('../common/ValidationError');
 
-const pointFields = [
-  'address',
+const businessFields = [
   'name',
+  'image',
+  'typeImage',
   'pageNumber',
   'value',
 ];
 
-class PointValidate {
+class BusinessValidate {
   add(payload) {
     if (!payload) {
       throw ValidationError('payload', '"payload" is required!');
@@ -19,19 +20,29 @@ class PointValidate {
       throw ValidationError('name', '"payload.name" is required!');
     }
 
-    if (!payload.address) {
-      throw ValidationError('address', '"payload.address" is required!');
+    if (!payload.image) {
+      throw ValidationError('image', '"payload.image" is required!');
     }
 
     if (!_.isString(payload.name)) {
       throw ValidationError('name', '"payload.name" can only be a string!');
     }
 
-    if (!_.isString(payload.address)) {
-      throw ValidationError('address', '"payload.address" can only be a string!');
+    if (!_.isString(payload.image)) {
+      throw ValidationError('image', '"payload.image" can only be a string!');
     }
 
-    return _.pick(payload, pointFields);
+    const matches = payload.image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+
+    if (matches == null || matches.length !== 3) {
+      throw ValidationError('image', '"payload.image" invalid input string!');
+    }
+
+    return _.pick({
+      name: payload.name,
+      typeImage: matches[1],
+      image: matches[2],
+    }, businessFields);
   }
 
   delete(_id) {
@@ -55,19 +66,31 @@ class PointValidate {
       throw ValidationError('name', '"payload.name" is required!');
     }
 
-    if (!payload.address) {
-      throw ValidationError('address', '"payload.address" is required!');
-    }
-
     if (!_.isString(payload.name)) {
       throw ValidationError('name', '"payload.name" can only be a string!');
     }
 
-    if (!_.isString(payload.address)) {
-      throw ValidationError('address', '"payload.address" can only be a string!');
+    if (payload.image) {
+      if (!_.isString(payload.image)) {
+        throw ValidationError('image', '"payload.image" can only be a string!');
+      }
+
+      const matches = payload.image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+
+      if (matches == null || matches.length !== 3) {
+        throw ValidationError('image', '"payload.image" invalid input string!');
+      }
+
+      return _.pick({
+        name: payload.name,
+        typeImage: matches[1],
+        image: matches[2],
+      }, businessFields);
     }
 
-    return _.pick(payload, pointFields);
+    return _.pick({
+      name: payload.name,
+    }, businessFields);
   }
 
   get(params) {
@@ -83,7 +106,7 @@ class PointValidate {
       throw ValidationError('pageNumber', '"params.pageNumber" "params.pageNumber" cannot be less than zero!');
     }
 
-    return _.pick(params, pointFields);
+    return _.pick(params, businessFields);
   }
 
   search(params) {
@@ -103,12 +126,12 @@ class PointValidate {
       throw ValidationError('pageNumber', '"params.pageNumber" "params.pageNumber" cannot be less than zero!');
     }
 
-    return _.pick(params, pointFields);
+    return _.pick(params, businessFields);
   }
 }
 
 module.exports = {
-  pointValidate: new PointValidate(),
-  PointValidate,
-  pointFields,
+  businessValidate: new BusinessValidate(),
+  BusinessValidate,
+  businessFields,
 }
