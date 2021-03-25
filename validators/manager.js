@@ -2,18 +2,15 @@ const validator = require('validator');
 const _ = require('lodash');
 const ValidationError = require('./../common/ValidationError');
 
-const feedbackFields = [
-  'idPoint',
-  'rating',
-  'notes',
-  'mac',
-  'image',
-  'typeImage',
+const managerFields = [
+  'idBusiness',
+  'idCustomer',
   'pageNumber',
-  'value'
+  'value',
+  'mac'
 ];
 
-class FeedbackValidate {
+class ManagerValidate {
   add(payload) {
     if (!payload) {
       throw ValidationError('payload', '"payload" is required!');
@@ -21,18 +18,6 @@ class FeedbackValidate {
 
     if (!payload.mac) {
       throw ValidationError('mac', '"payload.mac" is required!');
-    }
-
-    if (!payload.idPoint) {
-      throw ValidationError('idPoint', '"payload.idPoint" is required!');
-    }
-
-    if (!payload.rating) {
-      throw ValidationError('rating', '"payload.rating" is required!');
-    }
-
-    if (!payload.notes) {
-      throw ValidationError('notes', '"payload.notes" is required!');
     }
 
     if (!_.isString(payload.mac)) {
@@ -43,44 +28,23 @@ class FeedbackValidate {
       throw ValidationError('mac', '"payload.mac" is not correctly!');
     }
 
-    if (!validator.isInt(`${payload.idPoint}`)) {
-      throw ValidationError('idPoint', '"payload.idPoint" can only be an integer!');
+    if (!payload.idCustomer) {
+      throw ValidationError('idCustomer', '"payload.idCustomer" is required!');
     }
 
-    if (!validator.isInt(`${payload.rating}`)) {
-      throw ValidationError('rating', '"payload.rating" can only be an integer!');
+    if (!payload.idBusiness) {
+      throw ValidationError('idBusiness', '"payload.idBusiness" is required!');
     }
 
-    if (!_.isString(payload.notes)) {
-      throw ValidationError('notes', '"payload.notes" can only be a string!');
+    if (!validator.isInt(`${payload.idCustomer}`)) {
+      throw ValidationError('idCustomer', '"payload.idCustomer" can only be an integer!');
     }
 
-    if (!(payload.rating >= 1 && payload.rating <= 5)) {
-      throw ValidationError('rating', '"payload.rating" can only take values from 1 to 5 (inclusive)!');
+    if (!validator.isInt(`${payload.idBusiness}`)) {
+      throw ValidationError('idBusiness', '"payload.idBusiness" can only be an integer!');
     }
 
-    if (payload.image) {
-
-      if (!_.isString(payload.image)) {
-        throw ValidationError('image', '"payload.image" can only be a string!');
-      }
-
-      const matches = payload.image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-
-      if (matches == null || matches.length !== 3) {
-        throw ValidationError('image', '"payload.image" invalid input string!');
-      }
-
-      return _.pick({
-        ...payload,
-        typeImage: matches[1],
-        image: matches[2]
-      }, feedbackFields);
-
-    }
-
-    return _.pick(payload, feedbackFields);
-
+    return _.pick(payload, managerFields);
   }
 
   delete(_id, payload) {
@@ -104,7 +68,7 @@ class FeedbackValidate {
       throw ValidationError('mac', '"payload.mac" is not correctly!');
     }
 
-    return _.pick(payload, feedbackFields);
+    return _.pick(payload, managerFields);
   }
 
   update(_id, payload) {
@@ -128,62 +92,23 @@ class FeedbackValidate {
       throw ValidationError('mac', '"payload.mac" is not correctly!');
     }
 
-    let payloadCopy = {
-      mac: payload.mac,
-    }
+    if (payload.idBusiness) {
 
-    if (payload.idPoint) {
-
-      if (!validator.isInt(`${payload.idPoint}`)) {
-        throw ValidationError('idPoint', '"payload.idPoint" can only be an integer!');
+      if (!validator.isInt(`${payload.idBusiness}`)) {
+        throw ValidationError('idBusiness', '"payload.idBusiness" can only be an integer!');
       }
-
-      payloadCopy.idPoint = payload.idPoint;
 
     }
 
-    if (payload.rating) {
+    if (payload.idCustomer) {
 
-      if (!validator.isInt(`${payload.rating}`)) {
-        throw ValidationError('rating', '"payload.rating" can only be an integer!');
+      if (!validator.isInt(`${payload.idCustomer}`)) {
+        throw ValidationError('idCustomer', '"payload.idCustomer" can only be an integer!');
       }
-
-      if (!(payload.rating >= 1 && payload.rating <= 5)) {
-        throw ValidationError('rating', '"payload.rating" can only take values from 1 to 5 (inclusive)!');
-      }
-
-      payloadCopy.rating = payload.rating;
 
     }
 
-    if (payload.image) {
-
-      if (!_.isString(payload.image)) {
-        throw ValidationError('image', '"payload.image" can only be a string!');
-      }
-
-      const matches = payload.image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-
-      if (matches == null || matches.length !== 3) {
-        throw ValidationError('image', '"payload.image" invalid input string!');
-      }
-
-      payloadCopy.typeImage = matches[1];
-      payloadCopy.image = matches[2];
-
-    }
-
-    if (payload.notes) {
-
-      if (!_.isString(payload.notes)) {
-        throw ValidationError('notes', '"payload.notes" can only be a string!');
-      }
-
-      payloadCopy.notes = payload.notes;
-
-    }
-
-    return _.pick(payloadCopy, feedbackFields);
+    return _.pick(payload, managerFields);
   }
 
   getAll(payload) {
@@ -215,7 +140,7 @@ class FeedbackValidate {
       throw ValidationError('mac', '"payload.mac" is not correctly!');
     }
 
-    return _.pick(payload, feedbackFields);
+    return _.pick(payload, managerFields);
   }
 
   get(_id, payload) {
@@ -239,7 +164,7 @@ class FeedbackValidate {
       throw ValidationError('mac', '"payload.mac" is not correctly!');
     }
 
-    return _.pick(payload, feedbackFields);
+    return _.pick(payload, managerFields);
   }
 
   search(payload) {
@@ -275,12 +200,12 @@ class FeedbackValidate {
       throw ValidationError('mac', '"payload.mac" is not correctly!');
     }
 
-    return _.pick(payload, feedbackFields);
+    return _.pick(payload, managerFields);
   }
 }
 
 module.exports = {
-  feedbackValidate: new FeedbackValidate(),
-  FeedbackValidate,
-  feedbackFields,
+  managerValidate: new ManagerValidate(),
+  ManagerValidate,
+  managerFields,
 }

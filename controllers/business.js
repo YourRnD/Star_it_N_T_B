@@ -4,12 +4,14 @@ module.exports = ({ router, actions, db, validators }) => {
 
   const response = require('../common/response');
   const photo = require('../common/workWithPhotos');
+  const getInfoOutToken = require('../common/getUserDateOutToken');
 
   const passport = require('passport');
   const HttpStatus = require('http-status-codes');
 
   const routes = router();
   const business = actions.business({ db });
+  const manager = actions.manager({ db });
   const { businessValidate } = validators.business;
 
   //api/business/
@@ -17,18 +19,29 @@ module.exports = ({ router, actions, db, validators }) => {
     '/',
     passport.authenticate('jwt', {
       session: false,
-      failureRedirect: '/login'
+
     }),
     (req, res) => {
 
       try {
-        const reqData = businessValidate.get(req.query);
+        const reqData = businessValidate.getAll(req.query);
+
+        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+
+        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+          throw {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              message: 'Fatal error, please log in again'
+            }
+          }
+        }
 
         business.getAll(reqData.pageNumber * 10)
           .then(result => {
             if (result.rows.length === 0) {
               throw {
-                message: 'No records found!'
+                message: 'No records find!'
               }
             }
             let businesses = result.rows.map((item) => {
@@ -45,10 +58,18 @@ module.exports = ({ router, actions, db, validators }) => {
             }, res);
           })
           .catch(e => {
-            response.status(HttpStatus.BAD_REQUEST, e, res);
+            response.status(
+              e?.status || HttpStatus.BAD_REQUEST,
+              e?.body || e,
+              res
+            );
           });
       } catch (e) {
-        response.status(HttpStatus.BAD_REQUEST, e, res);
+        response.status(
+          e?.status || HttpStatus.BAD_REQUEST,
+          e?.body || e,
+          res
+        );
       }
 
     }
@@ -59,18 +80,29 @@ module.exports = ({ router, actions, db, validators }) => {
     '/search',
     passport.authenticate('jwt', {
       session: false,
-      failureRedirect: '/login'
+
     }),
     (req, res) => {
 
       try {
         const reqData = businessValidate.search(req.query);
 
+        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+
+        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+          throw {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              message: 'Fatal error, please log in again'
+            }
+          }
+        }
+
         business.search(reqData.pageNumber * 10, reqData.value)
           .then(result => {
             if (result.rows.length === 0) {
               throw {
-                message: 'No records found!'
+                message: 'No records find!'
               }
             }
             let businesses = result.rows.map((item) => {
@@ -87,10 +119,18 @@ module.exports = ({ router, actions, db, validators }) => {
             }, res);
           })
           .catch(e => {
-            response.status(HttpStatus.BAD_REQUEST, e, res);
+            response.status(
+              e?.status || HttpStatus.BAD_REQUEST,
+              e?.body || e,
+              res
+            );
           });
       } catch (e) {
-        response.status(HttpStatus.BAD_REQUEST, e, res);
+        response.status(
+          e?.status || HttpStatus.BAD_REQUEST,
+          e?.body || e,
+          res
+        );
       }
 
     }
@@ -101,29 +141,54 @@ module.exports = ({ router, actions, db, validators }) => {
     '/:id',
     passport.authenticate('jwt', {
       session: false,
-      failureRedirect: '/login'
+
     }),
     (req, res) => {
 
-      business.get(req.params.id)
-        .then(result => {
-          if (result.rows.length === 0) {
-            throw {
-              message: "Business with this id does not exist!"
-            };
-          }
-          response.status(HttpStatus.OK, {
-            message: 'Business find!',
-            business: {
-              id: result.rows[0].idbusiness,
-              name: result.rows[0].name,
-              path: result.rows[0].path
+      try {
+        const reqData = businessValidate.get(req.params.id, req.query);
+
+        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+
+        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+          throw {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              message: 'Fatal error, please log in again'
             }
-          }, res);
-        })
-        .catch(e => {
-          response.status(HttpStatus.BAD_REQUEST, e, res);
-        });
+          }
+        }
+
+        business.get(req.params.id)
+          .then(result => {
+            if (result.rows.length === 0) {
+              throw {
+                message: "Business with this id does not exist!"
+              };
+            }
+            response.status(HttpStatus.OK, {
+              message: 'Business find!',
+              business: {
+                id: result.rows[0].idbusiness,
+                name: result.rows[0].name,
+                path: result.rows[0].path
+              }
+            }, res);
+          })
+          .catch(e => {
+            response.status(
+              e?.status || HttpStatus.BAD_REQUEST,
+              e?.body || e,
+              res
+            );
+          });
+      } catch (e) {
+        response.status(
+          e?.status || HttpStatus.BAD_REQUEST,
+          e?.body || e,
+          res
+        );
+      }
 
     }
   )
@@ -133,12 +198,31 @@ module.exports = ({ router, actions, db, validators }) => {
     '/',
     passport.authenticate('jwt', {
       session: false,
-      failureRedirect: '/login'
+
     }),
     async (req, res) => {
       try {
-
         const reqData = businessValidate.add(req.body.payload);
+
+        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+
+        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+          throw {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              message: 'Fatal error, please log in again'
+            }
+          }
+        }
+
+        if (userData?.rightId != 2) {
+          throw {
+            status: HttpStatus.FORBIDDEN,
+            body: {
+              message: 'Not enough rights!'
+            }
+          }
+        }
 
         const uploadPath = await photo.uploadPhotoFunc({
           ...reqData
@@ -162,11 +246,19 @@ module.exports = ({ router, actions, db, validators }) => {
               res);
           })
           .catch(e => {
-            response.status(HttpStatus.BAD_REQUEST, e, res);
+            response.status(
+              e?.status || HttpStatus.BAD_REQUEST,
+              e?.body || e,
+              res
+            );
           });
 
       } catch (e) {
-        response.status(HttpStatus.BAD_REQUEST, e, res);
+        response.status(
+          e?.status || HttpStatus.BAD_REQUEST,
+          e?.body || e,
+          res
+        );
       }
 
     }
@@ -177,14 +269,34 @@ module.exports = ({ router, actions, db, validators }) => {
     '/:id',
     passport.authenticate('jwt', {
       session: false,
-      failureRedirect: '/login'
+
     }),
     (req, res) => {
 
       try {
-        const reqData = businessValidate.delete(req.params.id);
+        const reqData = businessValidate.delete(req.params.id, req.body.payload);
 
-        business.get(reqData)
+        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+
+        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+          throw {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              message: 'Fatal error, please log in again'
+            }
+          }
+        }
+
+        if (userData?.rightId != 2) {
+          throw {
+            status: HttpStatus.FORBIDDEN,
+            body: {
+              message: 'Not enough rights!'
+            }
+          }
+        }
+
+        business.get(req.params.id)
           .then(result => {
             if (result.rows.length === 0) {
               throw {
@@ -196,7 +308,7 @@ module.exports = ({ router, actions, db, validators }) => {
                 message: "The path is incorrect"
               }
             }
-            business.delete(reqData)
+            business.delete(req.params.id)
               .then(result => {
                 photo.deletePhotoFunc({ path: result.rows[0].path });
                 response.status(
@@ -212,15 +324,27 @@ module.exports = ({ router, actions, db, validators }) => {
                   res);
               })
               .catch(e => {
-                response.status(HttpStatus.BAD_REQUEST, e, res);
+                response.status(
+                  e?.status || HttpStatus.BAD_REQUEST,
+                  e?.body || e,
+                  res
+                );
               });
           })
           .catch(e => {
-            response.status(HttpStatus.BAD_REQUEST, e, res);
+            response.status(
+              e?.status || HttpStatus.BAD_REQUEST,
+              e?.body || e,
+              res
+            );
           });
 
       } catch (e) {
-        response.status(HttpStatus.BAD_REQUEST, e, res);
+        response.status(
+          e?.status || HttpStatus.BAD_REQUEST,
+          e?.body || e,
+          res
+        );
       }
 
     }
@@ -231,47 +355,83 @@ module.exports = ({ router, actions, db, validators }) => {
     '/:id',
     passport.authenticate('jwt', {
       session: false,
-      failureRedirect: '/login'
+
     }),
     async (req, res) => {
       try {
 
         const reqData = businessValidate.update(req.params.id, req.body.payload);
 
+        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+
+        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+          throw {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              message: 'Fatal error, please log in again'
+            }
+          }
+        }
+
         let uploadPath = '';
-        if (req.body.payload.image) {
-          uploadPath = photo.uploadPhotoFunc({
-            ...reqData
-          });
+
+        const managerBusiness = await manager.get(userData.userId);
+
+        if (
+          (userData?.rightId == 3 && managerBusiness.rows[0]?.idbusiness != req.params.id)
+          || userData?.rightId != 2
+        ) {
+          throw {
+            status: HttpStatus.FORBIDDEN,
+            body: {
+              message: 'Not enough rights!'
+            }
+          }
         }
 
         business.get(req.params.id)
-          .then(result => {
+          .then(async (result) => {
             if (result.rows.length === 0) {
               throw {
                 message: "Business with this id does not exist!"
               };
             }
+
+            if (req.body.payload.image) {
+              uploadPath = await photo.uploadPhotoFunc({
+                ...reqData
+              });
+            }
+
             const oldPath = result.rows[0].path;
-            if (photo.checkPuthFunc({ path: oldPath })) {
-              if (uploadPath === '') {
-                uploadPath = oldPath;
-              }
-            } else {
+
+            if (!(await photo.checkPuthFunc({ path: oldPath }))) {
               throw {
                 message: "The path is incorrect"
               }
             }
+
+            const businessDate = {
+              name: reqData?.name
+                ? reqData.name
+                : result.rows[0].name,
+              path: req.body.payload?.image
+                ? uploadPath
+                : oldPath,
+            }
+
             business.update(
               req.params.id,
               {
-                ...reqData,
-                path: uploadPath,
+                ...businessDate
               }
             )
-              .then(result => {
-                if (photo.checkPuthFunc({ path: oldPath })) {
-                  photo.deletePhotoFunc({ path: oldPath });
+              .then(async (result) => {
+                if (
+                  result.rows[0].path != oldPath
+                  && await photo.checkPuthFunc({ path: oldPath })
+                ) {
+                  await photo.deletePhotoFunc({ path: oldPath });
                 }
                 response.status(
                   HttpStatus.OK,
@@ -285,15 +445,36 @@ module.exports = ({ router, actions, db, validators }) => {
                   },
                   res);
               })
-              .catch(e => {
-                response.status(HttpStatus.BAD_REQUEST, e, res);
+              .catch(async (e) => {
+                if (await photo.checkPuthFunc({ path: uploadPath })) {
+                  await photo.deletePhotoFunc({ path: uploadPath });
+                }
+
+                response.status(
+                  e?.status || HttpStatus.BAD_REQUEST,
+                  e?.body || e,
+                  res
+                );
               });
           })
-          .catch(e => {
-            response.status(HttpStatus.BAD_REQUEST, e, res);
+          .catch(async (e) => {
+            if (await photo.checkPuthFunc({ path: uploadPath })) {
+              await photo.deletePhotoFunc({ path: uploadPath });
+            }
+
+            response.status(
+              e?.status || HttpStatus.BAD_REQUEST,
+              e?.body || e,
+              res
+            );
           });
+
       } catch (e) {
-        response.status(HttpStatus.BAD_REQUEST, e, res);
+        response.status(
+          e?.status || HttpStatus.BAD_REQUEST,
+          e?.body || e,
+          res
+        );
       }
 
     }

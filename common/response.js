@@ -2,7 +2,7 @@
 
 exports.status = (status, values, res) => {
   res.status(status);
-  res.send({
+  return res.send({
     status,
     ...values
   });

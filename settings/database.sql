@@ -25,3 +25,22 @@ create TABLE FeedBack(
     rating SMALLINT,
     notes text
 );
+
+create TABLE user_right(
+    idright SERIAL PRIMARY KEY,
+    name CHARACTER VARYING(25)
+);
+
+create TABLE manager(
+    idmanager SERIAL PRIMARY KEY UNIQUE,
+    idCustomer INTEGER REFERENCES Customer (idCustomer) UNIQUE,
+    idBusiness INTEGER REFERENCES Business (idBusiness)
+);
+
+idCustomer INTEGER REFERENCES Customer (idCustomer) UNIQUE,
+
+ALTER TABLE feedback ADD COLUMN path CHARACTER VARYING(200);
+
+ALTER TABLE Customers ADD UNIQUE (idCustomer);
+
+UPDATE point SET idbusiness = 255 WHERE idpoint > 50;

@@ -3,8 +3,8 @@ module.exports = ({ db }) => ({
     const { name, email, password } = payload;
 
     return db.query(
-      `INSERT INTO customer(name, email, password)
-      VALUES ($1, $2, $3) RETURNING *`,
+      `INSERT INTO customer(name, email, password, idright)
+      VALUES ($1, $2, $3, 1) RETURNING *`,
       [name, email, password]
     );
   },
@@ -18,33 +18,50 @@ module.exports = ({ db }) => ({
   },
 
   update: (_id, payload) => {
-    const { name, email, password } = payload;
+    const { name, email, password, idright } = payload;
 
     return db.query(
       `UPDATE customer 
-      SET name = $1, email = $2, password = $3
-      WHERE idcustomer = $4 RETURNING *`,
-      [name, email, password, _id]
+      SET name = $1, email = $2, 
+      password = $3, idright = $4
+      WHERE idcustomer = $5 RETURNING *`,
+      [name, email, password, idright, _id]
     );
   },
 
   get: (_id) => {
     return db.query(
-      `SELECT idcustomer, name, email FROM customer
+      `SELECT * 
+      FROM customer
       WHERE idcustomer = $1`,
       [_id]
     );
   },
 
-  getAll: () => {
-    return db.query(`SELECT idcustomer, name, email FROM customer`);
+  getAll: (pageStart) => {
+    return db.query(
+      `SELECT *, (
+        SELECT COUNT(*) FROM customer
+      ) as count_rows FROM customer
+      LIMIT 10 OFFSET ${pageStart}`
+    );
+  },
+
+  search: (pageStart, value) => {
+    return db.query(
+      `SELECT *, (
+        SELECT COUNT(*) FROM customer
+      ) as count_rows FROM customer
+      WHERE name @@ '${value}'
+      LIMIT 10 OFFSET ${pageStart}`
+    );
   },
 
   getUserByEmail: (payload) => {
     const { email } = payload;
 
     return db.query(
-      `SELECT idcustomer, email, password FROM customer 
+      `SELECT * FROM customer 
       WHERE email = $1`,
       [email]
     );

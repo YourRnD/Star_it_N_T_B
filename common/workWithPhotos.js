@@ -12,7 +12,7 @@ module.exports = {
     return true;
   },
 
-  uploadPhotoFunc: ({ typeImage, image }) => {
+  uploadPhotoFunc: async ({ typeImage, image }) => {
     const typeFile = typeImage.split('/').pop();
     const file = new Buffer.from(image, 'base64');
 
@@ -44,7 +44,7 @@ module.exports = {
 
     uploadPath = `${uploadPath}/${shortid.generate()}.${typeFile}`;
 
-    fs.writeFileSync(uploadPath, file);
+    await fs.writeFileSync(uploadPath, file);
 
     return uploadPath;
   },
@@ -52,18 +52,6 @@ module.exports = {
   deletePhotoFunc: ({ path }) => {
 
     fs.unlinkSync(path);
-
-    /*
-    const splitLength = path.split('/').length;
-    const pathParentFolder = path.split('/', splitLength - 1).join('/');
-    console.log(pathParentFolder);
-    const stats = fs.statSync(pathParentFolder);
-    console.log(stats);
-
-    if (stats["size"] <= 0) {
-      fs.rmdirSync(pathParentFolder);
-    }
-    */
 
   },
 };

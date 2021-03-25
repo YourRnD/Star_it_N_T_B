@@ -4,24 +4,25 @@ module.exports = ({ router, actions, db, validators }) => {
 
   const passport = require('passport');
   const HttpStatus = require('http-status-codes');
-  const bcrypt = require('bcryptjs');
 
   const response = require('../common/response');
   const getInfoOutToken = require('../common/getUserDateOutToken');
 
   const routes = router();
-  const customer = actions.customer({ db });
-  const { customerValidate } = validators.customer;
+  const manager = actions.manager({ db });
+  const { managerValidate } = validators.manager;
 
-  //api/customer/
+  //api/manager/
   routes.get(
     '/',
     passport.authenticate('jwt', {
       session: false,
+
     }),
     (req, res) => {
+
       try {
-        const reqData = customerValidate.getAll(req.query);
+        const reqData = managerValidate.getAll(req.query);
 
         const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
 
@@ -43,25 +44,25 @@ module.exports = ({ router, actions, db, validators }) => {
           }
         }
 
-        customer.getAll(reqData.pageNumber * 10)
+        manager.getAll(reqData.pageNumber * 10)
           .then(result => {
             if (result.rows.length === 0) {
               throw {
                 message: 'No records find!'
               }
             }
-            const users = result.rows.map((item) => {
+            let managers = result.rows.map((item) => {
               return {
-                id: item.idcustomer,
+                idmanager: item.idmanager,
+                idcustomer: item.idcustomer,
                 name: item.name,
                 email: item.email,
-                userStatus: item.idright
+                idbusiness: item.idbusiness
               }
             });
-
             response.status(HttpStatus.OK, {
-              message: 'Users find!',
-              users,
+              message: 'Managers find!',
+              managers,
               countPages: Math.ceil(result.rows[0].count_rows / 10)
             }, res);
           })
@@ -83,7 +84,7 @@ module.exports = ({ router, actions, db, validators }) => {
     }
   )
 
-  //api/customer/search
+  //api/manager/search
   routes.get(
     '/search',
     passport.authenticate('jwt', {
@@ -93,7 +94,7 @@ module.exports = ({ router, actions, db, validators }) => {
     (req, res) => {
 
       try {
-        const reqData = customerValidate.search(req.query);
+        const reqData = managerValidate.search(req.query);
 
         const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
 
@@ -115,25 +116,25 @@ module.exports = ({ router, actions, db, validators }) => {
           }
         }
 
-        customer.search(reqData.pageNumber * 10, reqData.value)
+        manager.search(reqData.pageNumber * 10, reqData.value)
           .then(result => {
             if (result.rows.length === 0) {
               throw {
                 message: 'No records find!'
               }
             }
-            const users = result.rows.map((item) => {
+            let managers = result.rows.map((item) => {
               return {
-                id: item.idcustomer,
+                idmanager: item.idmanager,
+                idcustomer: item.idcustomer,
                 name: item.name,
                 email: item.email,
-                userStatus: item.idright
+                idbusiness: item.idbusiness
               }
             });
-
             response.status(HttpStatus.OK, {
-              message: 'Users find!',
-              users,
+              message: 'Managers find!',
+              managers,
               countPages: Math.ceil(result.rows[0].count_rows / 10)
             }, res);
           })
@@ -155,7 +156,7 @@ module.exports = ({ router, actions, db, validators }) => {
     }
   )
 
-  //api/customer/:id
+  //api/manager/:id
   routes.get(
     '/:id',
     passport.authenticate('jwt', {
@@ -165,74 +166,7 @@ module.exports = ({ router, actions, db, validators }) => {
     (req, res) => {
 
       try {
-        const reqData = customerValidate.get(req.params.id, req.query);
-
-        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
-
-        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
-          throw {
-            status: HttpStatus.UNAUTHORIZED,
-            body: {
-              message: 'Fatal error, please log in again'
-            }
-          }
-        }
-
-        if (userData?.userId != req.params.id) {
-          throw {
-            status: HttpStatus.FORBIDDEN,
-            body: {
-              message: 'Not enough rights!'
-            }
-          }
-        }
-
-        customer
-          .get(req.params.id)
-          .then(result => {
-            if (result.rows.length === 0) {
-              throw {
-                message: 'User with this id does not exist!'
-              };
-            }
-            response.status(HttpStatus.OK, {
-              message: 'User find!',
-              user: {
-                id: result.rows[0].idcustomer,
-                name: result.rows[0].name,
-                email: result.rows[0].email
-              }
-            }, res);
-          })
-          .catch(e => {
-            response.status(
-              e?.status || HttpStatus.BAD_REQUEST,
-              e?.body || e,
-              res
-            );
-          });
-      } catch (e) {
-        response.status(
-          e?.status || HttpStatus.BAD_REQUEST,
-          e?.body || e,
-          res
-        );
-      }
-
-    }
-  )
-
-  //api/customer/
-  routes.delete(
-    '/:id',
-    passport.authenticate('jwt', {
-      session: false,
-    }),
-    (req, res) => {
-
-      try {
-
-        const reqData = customerValidate.delete(req.params.id, req.body.payload);
+        const reqData = managerValidate.get(req.params.id, req.query);
 
         const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
 
@@ -254,33 +188,86 @@ module.exports = ({ router, actions, db, validators }) => {
           }
         }
 
-        customer.get(req.params.id)
+        manager.getWithManagerId(req.params.id)
           .then(result => {
             if (result.rows.length === 0) {
-              throw { message: 'User with this id does not exist!' };
+              throw {
+                message: "Manager with this id does not exist!"
+              };
             }
+            response.status(HttpStatus.OK, {
+              message: 'Manager find!',
+              manager: {
+                idmanager: result.rows[0].idmanager,
+                idcustomer: result.rows[0].idcustomer,
+                name: result.rows[0].name,
+                email: result.rows[0].email,
+                idbusiness: result.rows[0].idbusiness
+              }
+            }, res);
+          })
+          .catch(e => {
+            response.status(
+              e?.status || HttpStatus.BAD_REQUEST,
+              e?.body || e,
+              res
+            );
+          });
+      } catch (e) {
+        response.status(
+          e?.status || HttpStatus.BAD_REQUEST,
+          e?.body || e,
+          res
+        );
+      }
 
-            customer.delete(req.params.id)
-              .then(result => {
-                response.status(
-                  HttpStatus.OK,
-                  {
-                    message: 'User deleted successfully!',
-                    user: {
-                      id: result.rows[0].idcustomer,
-                      name: result.rows[0].name,
-                      email: result.rows[0].email
-                    }
-                  },
-                  res);
-              })
-              .catch(e => {
-                response.status(
-                  e?.status || HttpStatus.BAD_REQUEST,
-                  e?.body || e,
-                  res
-                );
-              });
+    }
+  )
+
+  //api/manager/
+  routes.post(
+    '/',
+    passport.authenticate('jwt', {
+      session: false,
+
+    }),
+    (req, res) => {
+
+      try {
+        const reqData = managerValidate.add(req.body.payload);
+
+        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+
+        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+          throw {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              message: 'Fatal error, please log in again'
+            }
+          }
+        }
+
+        if (userData?.rightId != 2) {
+          throw {
+            status: HttpStatus.FORBIDDEN,
+            body: {
+              message: 'Not enough rights!'
+            }
+          }
+        }
+
+        manager.add({ ...reqData })
+          .then(result => {
+            response.status(
+              HttpStatus.OK,
+              {
+                message: 'Manager added successfully!',
+                manager: {
+                  idmanager: result.rows[0].idmanager,
+                  idcustomer: result.rows[0].idcustomer
+                }
+              },
+              res);
           })
           .catch(e => {
             response.status(
@@ -300,8 +287,8 @@ module.exports = ({ router, actions, db, validators }) => {
     }
   );
 
-  //api/customer/
-  routes.put(
+  //api/manager/
+  routes.delete(
     '/:id',
     passport.authenticate('jwt', {
       session: false,
@@ -310,7 +297,7 @@ module.exports = ({ router, actions, db, validators }) => {
     (req, res) => {
 
       try {
-        const reqData = customerValidate.update(req.params.id, req.body.payload);
+        const reqData = managerValidate.delete(req.params.id, req.body.payload);
 
         const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
 
@@ -323,7 +310,7 @@ module.exports = ({ router, actions, db, validators }) => {
           }
         }
 
-        if (userData?.rightId != 2 && userData?.userId != req.params.id) {
+        if (userData?.rightId != 2) {
           throw {
             status: HttpStatus.FORBIDDEN,
             body: {
@@ -332,63 +319,116 @@ module.exports = ({ router, actions, db, validators }) => {
           }
         }
 
-        let password = '';
-
-        if (reqData?.password) {
-
-          const salt = bcrypt.genSaltSync(15);
-          password = bcrypt.hashSync(reqData.password, salt);
-
-        }
-
-        let status = '';
-
-        if (reqData?.status && userData?.rightId == 2) {
-
-          if (reqData.status != 1 && reqData.status != 2 && reqData.status != 3) {
-            throw { message: 'Incorrect status!' };
-          }
-
-          status = reqData.status;
-
-        }
-
-        customer.get(req.params.id)
+        manager.getWithManagerId(req.params.id)
           .then(result => {
             if (result.rows.length === 0) {
-              throw { message: 'User with this id does not exist!' };
+              throw {
+                message: "Manager with this id does not exist!"
+              };
             }
 
-            const userDate = {
-              name: reqData?.name
-                ? reqData.name
-                : result.rows[0].name,
-              email: reqData?.email
-                ? reqData.email
-                : result.rows[0].email,
-              password: reqData?.password
-                ? password
-                : result.rows[0].password,
-              idright: status != ''
-                ? status
-                : result.rows[0].idright,
-            }
-
-            customer.update(
-              req.params.id,
-              {
-                ...userDate
-              }
-            )
+            manager.delete(req.params.id)
               .then(result => {
                 response.status(
                   HttpStatus.OK,
                   {
-                    message: 'User updated successfully!',
-                    user: {
-                      id: result.rows[0].idcustomer,
+                    message: 'Manager deleted successfully!',
+                    manager: {
+                      idmanager: result.rows[0].idmanager,
+                      idcustomer: result.rows[0].idcustomer,
                       name: result.rows[0].name,
-                      email: result.rows[0].email
+                      email: result.rows[0].email,
+                      idbusiness: result.rows[0].idbusiness
+                    }
+                  },
+                  res);
+              })
+              .catch(e => {
+                response.status(
+                  e?.status || HttpStatus.BAD_REQUEST,
+                  e?.body || e,
+                  res
+                );
+              });
+          })
+          .catch(e => {
+            response.status(
+              e?.status || HttpStatus.BAD_REQUEST,
+              e?.body || e,
+              res
+            );
+          });
+
+      } catch (e) {
+        response.status(
+          e?.status || HttpStatus.BAD_REQUEST,
+          e?.body || e,
+          res
+        );
+      }
+
+    }
+  );
+
+  //api/manager/
+  routes.put(
+    '/:id',
+    passport.authenticate('jwt', {
+      session: false,
+
+    }),
+    (req, res) => {
+
+      try {
+        const reqData = managerValidate.update(req.params.id, req.body.payload);
+
+        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+
+        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+          throw {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              message: 'Fatal error, please log in again'
+            }
+          }
+        }
+
+        if (userData?.rightId != 2) {
+          throw {
+            status: HttpStatus.FORBIDDEN,
+            body: {
+              message: 'Not enough rights!'
+            }
+          }
+        }
+
+        manager.getWithManagerId(req.params.id)
+          .then(result => {
+            if (result.rows.length === 0) {
+              throw {
+                message: "Manager with this id does not exist!"
+              };
+            }
+
+            manager.update(req.params.id, {
+              idCustomer: reqData?.customerId
+                ? reqData.customerId
+                : result.rows[0].idcustomer,
+              idBusiness: reqData?.businessId
+                ? reqData.businessId
+                : result.rows[0].idbusiness,
+            })
+              .then(result => {
+                response.status(
+                  HttpStatus.OK,
+                  {
+                    message: 'Manager updated successfully!',
+                    manager: {
+                      idmanager: result.rows[0].idmanager,
+                      idcustomer: result.rows[0].idcustomer,
+                      name: result.rows[0].name,
+                      email: result.rows[0].email,
+                      idbusiness: result.rows[0].idbusiness
                     }
                   },
                   res);
@@ -420,5 +460,4 @@ module.exports = ({ router, actions, db, validators }) => {
   );
 
   return routes;
-
 }

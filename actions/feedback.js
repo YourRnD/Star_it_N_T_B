@@ -1,11 +1,11 @@
 module.exports = ({ db }) => ({
   add: (payload) => {
-    const { idCustomer, idPoint, date, rating, notes } = payload;
+    const { idCustomer, idPoint, date, rating, notes, path } = payload;
 
     return db.query(
-      `INSERT INTO feedback(idcustomer, idpoint, date, rating, notes)
-      VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [idCustomer, idPoint, date, rating, notes]
+      `INSERT INTO feedback(idcustomer, idpoint, date, rating, notes, path)
+      VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [idCustomer, idPoint, date, rating, notes, path]
     );
   },
 
@@ -18,14 +18,15 @@ module.exports = ({ db }) => ({
   },
 
   update: (_id, payload) => {
-    const { idCustomer, idPoint, date, rating, notes } = payload;
+    const { idCustomer, idPoint, date, rating, notes, path } = payload;
 
     return db.query(
       `UPDATE feedback SET idCustomer = $1, 
       idPoint = $2, date = $3, 
-      rating = $4, notes = $5
-      WHERE idfeedback = $6 RETURNING *`,
-      [idCustomer, idPoint, date, rating, notes, _id]
+      rating = $4, notes = $5,
+      path = $6
+      WHERE idfeedback = $7 RETURNING *`,
+      [idCustomer, idPoint, date, rating, notes, path, _id]
     );
   },
 
@@ -40,12 +41,27 @@ module.exports = ({ db }) => ({
     );
   },
 
-  getAll: () => {
+  getAll: (pageStart) => {
     return db.query(
-      `SELECT * 
+      `SELECT *, (
+        SELECT COUNT(*) FROM feedback
+      ) as count_rows FROM feedback as f
+      JOIN customer as c ON c.idcustomer = f.idcustomer
+      JOIN point as p ON p.idpoint = f.idpoint
+      LIMIT 10 OFFSET ${pageStart}`
+    );
+  },
+
+  search: async (pageStart, value) => {
+    return db.query(
+      `SELECT *, (
+        SELECT COUNT(*) FROM feedback
+      ) as count_rows
       FROM feedback as f
       JOIN customer as c ON c.idcustomer = f.idcustomer
-      JOIN point as p ON p.idpoint = f.idpoint`
+      JOIN point as p ON p.idpoint = f.idpoint
+      WHERE p.name @@ '${value}'
+      LIMIT 10 OFFSET ${pageStart}`
     );
   }
 });

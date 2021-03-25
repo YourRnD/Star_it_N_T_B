@@ -1,11 +1,11 @@
 module.exports = ({ db }) => ({
   add: (payload) => {
-    const { address, name } = payload;
+    const { address, name, idbusiness } = payload;
 
     return db.query(
-      `INSERT INTO point(name, address)
-      VALUES ($1, $2) RETURNING *`,
-      [name, address]
+      `INSERT INTO point(name, address, idbusiness)
+      VALUES ($1, $2, $3) RETURNING *`,
+      [name, address, idbusiness]
     );
   },
 
@@ -18,12 +18,12 @@ module.exports = ({ db }) => ({
   },
 
   update: (_id, payload) => {
-    const { address, name } = payload;
+    const { address, name, idbusiness } = payload;
 
     return db.query(
-      `UPDATE point SET name = $1, address = $2
-      WHERE idpoint = $3 RETURNING *`,
-      [name, address, _id]
+      `UPDATE point SET name = $1, address = $2, idbusiness = $3
+      WHERE idpoint = $4 RETURNING *`,
+      [name, address, idbusiness, _id]
     );
   },
 

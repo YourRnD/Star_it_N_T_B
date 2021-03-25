@@ -7,6 +7,8 @@ const pointFields = [
   'name',
   'pageNumber',
   'value',
+  'mac',
+  'businessId'
 ];
 
 class PointValidate {
@@ -23,6 +25,10 @@ class PointValidate {
       throw ValidationError('address', '"payload.address" is required!');
     }
 
+    if (!payload.mac) {
+      throw ValidationError('mac', '"payload.mac" is required!');
+    }
+
     if (!_.isString(payload.name)) {
       throw ValidationError('name', '"payload.name" can only be a string!');
     }
@@ -31,15 +37,47 @@ class PointValidate {
       throw ValidationError('address', '"payload.address" can only be a string!');
     }
 
+    if (!_.isString(payload.mac)) {
+      throw ValidationError('mac', '"payload.mac" can only be a string!');
+    }
+
+    if (!validator.isMACAddress(payload.mac)) {
+      throw ValidationError('mac', '"payload.mac" is not correctly!');
+    }
+
+    if (payload.businessId) {
+
+      if (!validator.isInt(`${payload.businessId}`)) {
+        throw ValidationError('businessId', '"payload.businessId" can only be an integer!');
+      }
+
+    }
+
     return _.pick(payload, pointFields);
   }
 
-  delete(_id) {
+  delete(_id, payload) {
     if (!validator.isInt(`${_id}`)) {
       throw ValidationError('id', '"id" can only be an integer!');
     }
 
-    return _id;
+    if (!payload) {
+      throw ValidationError('payload', '"payload" is required!');
+    }
+
+    if (!payload.mac) {
+      throw ValidationError('mac', '"payload.mac" is required!');
+    }
+
+    if (!_.isString(payload.mac)) {
+      throw ValidationError('mac', '"payload.mac" can only be a string!');
+    }
+
+    if (!validator.isMACAddress(payload.mac)) {
+      throw ValidationError('mac', '"payload.mac" is not correctly!');
+    }
+
+    return _.pick(payload, pointFields);
   }
 
   update(_id, payload) {
@@ -51,59 +89,135 @@ class PointValidate {
       throw ValidationError('payload', '"payload" is required!');
     }
 
-    if (!payload.name) {
-      throw ValidationError('name', '"payload.name" is required!');
+    if (!payload.mac) {
+      throw ValidationError('mac', '"payload.mac" is required!');
     }
 
-    if (!payload.address) {
-      throw ValidationError('address', '"payload.address" is required!');
+    if (!_.isString(payload.mac)) {
+      throw ValidationError('mac', '"payload.mac" can only be a string!');
     }
 
-    if (!_.isString(payload.name)) {
-      throw ValidationError('name', '"payload.name" can only be a string!');
+    if (!validator.isMACAddress(payload.mac)) {
+      throw ValidationError('mac', '"payload.mac" is not correctly!');
     }
 
-    if (!_.isString(payload.address)) {
-      throw ValidationError('address', '"payload.address" can only be a string!');
+    if (payload.name) {
+
+      if (!_.isString(payload.name)) {
+        throw ValidationError('name', '"payload.name" can only be a string!');
+      }
+
+    }
+
+    if (payload.address) {
+
+      if (!_.isString(payload.address)) {
+        throw ValidationError('address', '"payload.address" can only be a string!');
+      }
+
+    }
+
+    if (payload.businessId) {
+
+      if (!validator.isInt(`${payload.businessId}`)) {
+        throw ValidationError('businessId', '"payload.businessId" can only be an integer!');
+      }
+
     }
 
     return _.pick(payload, pointFields);
   }
 
-  get(params) {
-    if (!params.pageNumber) {
-      throw ValidationError('pageNumber', '"params.pageNumber" is required!');
+  getAll(payload) {
+    if (!payload) {
+      throw ValidationError('payload', '"payload" is required!');
     }
 
-    if (!validator.isInt(`${params.pageNumber}`)) {
-      throw ValidationError('pageNumber', '"params.pageNumber" can only be an integer!');
+    if (!payload.pageNumber) {
+      throw ValidationError('pageNumber', '"payload.pageNumber" is required!');
     }
 
-    if (params.pageNumber < 0) {
-      throw ValidationError('pageNumber', '"params.pageNumber" "params.pageNumber" cannot be less than zero!');
+    if (!payload.mac) {
+      throw ValidationError('mac', '"payload.mac" is required!');
     }
 
-    return _.pick(params, pointFields);
+    if (!validator.isInt(`${payload.pageNumber}`)) {
+      throw ValidationError('pageNumber', '"payload.pageNumber" can only be an integer!');
+    }
+
+    if (!_.isString(payload.mac)) {
+      throw ValidationError('mac', '"payload.mac" can only be a string!');
+    }
+
+    if (payload.pageNumber < 0) {
+      throw ValidationError('pageNumber', '"payload.pageNumber" cannot be less than zero!');
+    }
+
+    if (!validator.isMACAddress(payload.mac)) {
+      throw ValidationError('mac', '"payload.mac" is not correctly!');
+    }
+
+    return _.pick(payload, pointFields);
   }
 
-  search(params) {
-    if (!params.pageNumber) {
-      throw ValidationError('pageNumber', '"params.pageNumber" is required!');
+  get(_id, payload) {
+    if (!validator.isInt(`${_id}`)) {
+      throw ValidationError('id', '"id" can only be an integer!');
     }
 
-    if (!params.value) {
-      throw ValidationError('value', '"params.value" is required!');
+    if (!payload) {
+      throw ValidationError('payload', '"payload" is required!');
     }
 
-    if (!validator.isInt(`${params.pageNumber}`)) {
-      throw ValidationError('pageNumber', '"params.pageNumber" can only be an integer!');
+    if (!payload.mac) {
+      throw ValidationError('mac', '"payload.mac" is required!');
     }
 
-    if (params.pageNumber < 0) {
-      throw ValidationError('pageNumber', '"params.pageNumber" "params.pageNumber" cannot be less than zero!');
+    if (!_.isString(payload.mac)) {
+      throw ValidationError('mac', '"payload.mac" can only be a string!');
     }
 
-    return _.pick(params, pointFields);
+    if (!validator.isMACAddress(payload.mac)) {
+      throw ValidationError('mac', '"payload.mac" is not correctly!');
+    }
+
+    return _.pick(payload, pointFields);
+  }
+
+  search(payload) {
+    if (!payload) {
+      throw ValidationError('payload', '"payload" is required!');
+    }
+
+    if (!payload.pageNumber) {
+      throw ValidationError('pageNumber', '"payload.pageNumber" is required!');
+    }
+
+    if (!payload.value) {
+      throw ValidationError('value', '"payload.value" is required!');
+    }
+
+    if (!payload.mac) {
+      throw ValidationError('mac', '"payload.mac" is required!');
+    }
+
+    if (!validator.isInt(`${payload.pageNumber}`)) {
+      throw ValidationError('pageNumber', '"payload.pageNumber" can only be an integer!');
+    }
+
+    if (!_.isString(payload.mac)) {
+      throw ValidationError('mac', '"payload.mac" can only be a string!');
+    }
+
+    if (payload.pageNumber < 0) {
+      throw ValidationError('pageNumber', '"payload.pageNumber" cannot be less than zero!');
+    }
+
+    if (!validator.isMACAddress(payload.mac)) {
+      throw ValidationError('mac', '"payload.mac" is not correctly!');
+    }
+
+    return _.pick(payload, pointFields);
   }
 }
 

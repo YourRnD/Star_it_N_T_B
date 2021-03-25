@@ -6,9 +6,11 @@ module.exports = ({ router, actions, db, validators }) => {
   const HttpStatus = require('http-status-codes');
 
   const response = require('../common/response');
+  const getInfoOutToken = require('../common/getUserDateOutToken');
 
   const routes = router();
   const point = actions.point({ db });
+  const manager = actions.manager({ db });
   const { pointValidate } = validators.point;
 
   //api/point/
@@ -16,18 +18,29 @@ module.exports = ({ router, actions, db, validators }) => {
     '/',
     passport.authenticate('jwt', {
       session: false,
-      failureRedirect: '/login'
+
     }),
     (req, res) => {
 
       try {
-        const reqData = pointValidate.get(req.query);
+        const reqData = pointValidate.getAll(req.query);
+
+        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+
+        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+          throw {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              message: 'Fatal error, please log in again'
+            }
+          }
+        }
 
         point.getAll(reqData.pageNumber * 10)
           .then(result => {
             if (result.rows.length === 0) {
               throw {
-                message: 'No records found!'
+                message: 'No records find!'
               }
             }
             let points = result.rows.map((item) => {
@@ -44,10 +57,18 @@ module.exports = ({ router, actions, db, validators }) => {
             }, res);
           })
           .catch(e => {
-            response.status(HttpStatus.BAD_REQUEST, e, res);
+            response.status(
+              e?.status || HttpStatus.BAD_REQUEST,
+              e?.body || e,
+              res
+            );
           });
       } catch (e) {
-        response.status(HttpStatus.BAD_REQUEST, e, res);
+        response.status(
+          e?.status || HttpStatus.BAD_REQUEST,
+          e?.body || e,
+          res
+        );
       }
 
     }
@@ -58,18 +79,29 @@ module.exports = ({ router, actions, db, validators }) => {
     '/search',
     passport.authenticate('jwt', {
       session: false,
-      failureRedirect: '/login'
+
     }),
     (req, res) => {
 
       try {
         const reqData = pointValidate.search(req.query);
 
+        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+
+        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+          throw {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              message: 'Fatal error, please log in again'
+            }
+          }
+        }
+
         point.search(reqData.pageNumber * 10, reqData.value)
           .then(result => {
             if (result.rows.length === 0) {
               throw {
-                message: 'No records found!'
+                message: 'No records find!'
               }
             }
             let points = result.rows.map((item) => {
@@ -86,10 +118,18 @@ module.exports = ({ router, actions, db, validators }) => {
             }, res);
           })
           .catch(e => {
-            response.status(HttpStatus.BAD_REQUEST, e, res);
+            response.status(
+              e?.status || HttpStatus.BAD_REQUEST,
+              e?.body || e,
+              res
+            );
           });
       } catch (e) {
-        response.status(HttpStatus.BAD_REQUEST, e, res);
+        response.status(
+          e?.status || HttpStatus.BAD_REQUEST,
+          e?.body || e,
+          res
+        );
       }
 
     }
@@ -100,29 +140,54 @@ module.exports = ({ router, actions, db, validators }) => {
     '/:id',
     passport.authenticate('jwt', {
       session: false,
-      failureRedirect: '/login'
+
     }),
     (req, res) => {
 
-      point.get(req.params.id)
-        .then(result => {
-          if (result.rows.length === 0) {
-            throw {
-              message: "Point with this id does not exist!"
-            };
-          }
-          response.status(HttpStatus.OK, {
-            message: 'Point find!',
-            point: {
-              id: result.rows[0].idpoint,
-              name: result.rows[0].name,
-              addres: result.rows[0].address
+      try {
+        const reqData = pointValidate.get(req.params.id, req.query);
+
+        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+
+        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+          throw {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              message: 'Fatal error, please log in again'
             }
-          }, res);
-        })
-        .catch(e => {
-          response.status(HttpStatus.BAD_REQUEST, e, res);
-        });
+          }
+        }
+
+        point.get(req.params.id)
+          .then(result => {
+            if (result.rows.length === 0) {
+              throw {
+                message: "Point with this id does not exist!"
+              };
+            }
+            response.status(HttpStatus.OK, {
+              message: 'Point find!',
+              point: {
+                id: result.rows[0].idpoint,
+                name: result.rows[0].name,
+                addres: result.rows[0].address
+              }
+            }, res);
+          })
+          .catch(e => {
+            response.status(
+              e?.status || HttpStatus.BAD_REQUEST,
+              e?.body || e,
+              res
+            );
+          });
+      } catch (e) {
+        response.status(
+          e?.status || HttpStatus.BAD_REQUEST,
+          e?.body || e,
+          res
+        );
+      }
 
     }
   )
@@ -132,14 +197,61 @@ module.exports = ({ router, actions, db, validators }) => {
     '/',
     passport.authenticate('jwt', {
       session: false,
-      failureRedirect: '/login'
+
     }),
-    (req, res) => {
+    async (req, res) => {
 
       try {
         const reqData = pointValidate.add(req.body.payload);
 
-        point.add(reqData)
+        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+
+        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+          throw {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              message: 'Fatal error, please log in again'
+            }
+          }
+        }
+
+        let safeUserDate = {};
+
+        if (userData?.rightId == 2) {
+          if (!reqData?.businessId) {
+            throw {
+              message: "Business id not specified"
+            }
+          }
+
+          safeUserDate.idbusiness = reqData?.businessId;
+        } else if (userData?.rightId == 3) {
+
+          const managerBusiness = await manager.get(userData.userId);
+
+          if (managerBusiness?.rows[0]?.idbusiness) {
+            safeUserDate.idbusiness = managerBusiness?.rows[0]?.idbusiness;
+          } else {
+            throw {
+              message: "Business id not specified"
+            }
+          }
+        } else {
+          throw {
+            status: HttpStatus.FORBIDDEN,
+            body: {
+              message: 'Not enough rights!'
+            }
+          }
+        }
+
+        safeUserDate = {
+          ...safeUserDate,
+          name: reqData.name,
+          address: reqData.address
+        };
+
+        point.add(safeUserDate)
           .then(result => {
             response.status(
               HttpStatus.OK,
@@ -154,10 +266,18 @@ module.exports = ({ router, actions, db, validators }) => {
               res);
           })
           .catch(e => {
-            response.status(HttpStatus.BAD_REQUEST, e, res);
+            response.status(
+              e?.status || HttpStatus.BAD_REQUEST,
+              e?.body || e,
+              res
+            );
           });
       } catch (e) {
-        response.status(HttpStatus.BAD_REQUEST, e, res);
+        response.status(
+          e?.status || HttpStatus.BAD_REQUEST,
+          e?.body || e,
+          res
+        );
       }
 
     }
@@ -168,22 +288,47 @@ module.exports = ({ router, actions, db, validators }) => {
     '/:id',
     passport.authenticate('jwt', {
       session: false,
-      failureRedirect: '/login'
+
     }),
     (req, res) => {
 
       try {
-        const reqData = pointValidate.delete(req.params.id);
+        const reqData = pointValidate.delete(req.params.id, req.body.payload);
 
-        point.get(reqData)
-          .then(result => {
+        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+
+        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+          throw {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              message: 'Fatal error, please log in again'
+            }
+          }
+        }
+
+        point.get(req.params.id)
+          .then(async (result) => {
             if (result.rows.length === 0) {
               throw {
                 message: "Point with this id does not exist!"
               };
             }
 
-            point.delete(reqData)
+            const managerBusiness = await manager.get(userData.userId);
+
+            if (
+              (userData?.rightId == 3 && managerBusiness.rows[0]?.idbusiness != result.rows[0]?.idbusiness)
+              || userData?.rightId != 2
+            ) {
+              throw {
+                status: HttpStatus.FORBIDDEN,
+                body: {
+                  message: 'Not enough rights!'
+                }
+              }
+            }
+
+            point.delete(req.params.id)
               .then(result => {
                 response.status(
                   HttpStatus.OK,
@@ -198,15 +343,27 @@ module.exports = ({ router, actions, db, validators }) => {
                   res);
               })
               .catch(e => {
-                response.status(HttpStatus.BAD_REQUEST, e, res);
+                response.status(
+                  e?.status || HttpStatus.BAD_REQUEST,
+                  e?.body || e,
+                  res
+                );
               });
           })
           .catch(e => {
-            response.status(HttpStatus.BAD_REQUEST, e, res);
+            response.status(
+              e?.status || HttpStatus.BAD_REQUEST,
+              e?.body || e,
+              res
+            );
           });
 
       } catch (e) {
-        response.status(HttpStatus.BAD_REQUEST, e, res);
+        response.status(
+          e?.status || HttpStatus.BAD_REQUEST,
+          e?.body || e,
+          res
+        );
       }
 
     }
@@ -217,22 +374,69 @@ module.exports = ({ router, actions, db, validators }) => {
     '/:id',
     passport.authenticate('jwt', {
       session: false,
-      failureRedirect: '/login'
+
     }),
     (req, res) => {
 
       try {
         const reqData = pointValidate.update(req.params.id, req.body.payload);
 
+        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+
+        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+          throw {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              message: 'Fatal error, please log in again'
+            }
+          }
+        }
+
         point.get(req.params.id)
-          .then(result => {
+          .then(async (result) => {
             if (result.rows.length === 0) {
               throw {
                 message: "Point with this id does not exist!"
               };
             }
 
-            point.update(req.params.id, reqData)
+            let safeUserDate = {};
+
+            if (userData?.rightId == 3) {
+              const managerBusiness = await manager.get(userData.userId);
+
+              if (managerBusiness?.rows[0]?.idbusiness) {
+                safeUserDate.idbusiness = managerBusiness?.rows[0]?.idbusiness;
+              } else {
+                throw {
+                  message: "Business id not specified"
+                }
+              }
+
+            } else if (userData?.rightId == 2) {
+              safeUserDate.idbusiness = reqData?.businessId
+                ? reqData.businessId
+                : result.rows[0].idbusiness;
+            } else {
+              throw {
+                status: HttpStatus.FORBIDDEN,
+                body: {
+                  message: 'Not enough rights!'
+                }
+              }
+            }
+
+            safeUserDate = {
+              ...safeUserDate,
+              name: reqData?.name
+                ? reqData.name
+                : result.rows[0].name,
+              address: reqData?.address
+                ? reqData.address
+                : result.rows[0].address,
+            };
+
+            point.update(req.params.id, safeUserDate)
               .then(result => {
                 response.status(
                   HttpStatus.OK,
@@ -247,14 +451,26 @@ module.exports = ({ router, actions, db, validators }) => {
                   res);
               })
               .catch(e => {
-                response.status(HttpStatus.BAD_REQUEST, e, res);
+                response.status(
+                  e?.status || HttpStatus.BAD_REQUEST,
+                  e?.body || e,
+                  res
+                );
               });
           })
           .catch(e => {
-            response.status(HttpStatus.BAD_REQUEST, e, res);
+            response.status(
+              e?.status || HttpStatus.BAD_REQUEST,
+              e?.body || e,
+              res
+            );
           });
       } catch (e) {
-        response.status(HttpStatus.BAD_REQUEST, e, res);
+        response.status(
+          e?.status || HttpStatus.BAD_REQUEST,
+          e?.body || e,
+          res
+        );
       }
 
     }
