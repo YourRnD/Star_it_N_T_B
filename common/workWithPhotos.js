@@ -15,40 +15,50 @@ const pathConvector = (path) => {
 }
 
 module.exports = {
-  checkPuthFunc: async ({ path }) => {
-    const correctPath = pathConvector(path);
+  checkPuthFunc: async ({ paths }) => {
+    let check = true;
 
-    const check = await cloudinary.v2.api.resources_by_ids([correctPath], (error, result) => {
-      if (error || result.resources.length === 0) {
-        return false;
-      }
+    for (let i = 0; i < paths.length; i++) {
+      const correctPath = pathConvector(paths[i]);
 
-      return true;
-    })
+      await cloudinary.v2.api.resources_by_ids([correctPath], (error, result) => {
+        if (error || result.resources.length === 0) {
+          check = false;
+        }
+      })
+    }
 
     return check;
   },
 
   uploadPhotoFunc: async ({ base64 }) => {
-    const response = await cloudinary.v2.uploader.upload(base64, (error, result) => {
-      if (error) {
-        throw { message: 'Error' }
-      }
-      return result;
-    });
 
-    return response.url;
+    let path = [];
+
+    for (let i = 0; i < base64.length; i++) {
+      const response = await cloudinary.v2.uploader.upload(base64[i].base64Img, (error, result) => {
+        if (error) {
+          throw { message: 'Error' }
+        }
+        return result;
+      });
+
+      path.push(response.url);
+    }
+
+    return path;
   },
 
-  deletePhotoFunc: ({ path }) => {
-    const correctPath = pathConvector(path);
+  deletePhotoFunc: async ({ paths }) => {
+    for (let i = 0; i < paths.length; i++) {
+      const correctPath = pathConvector(paths[i]);
 
-    cloudinary.v2.api.delete_resources([correctPath], (error, result) => {
-      if (error) {
-        throw { message: 'Error' }
-      }
-    })
-
+      await cloudinary.v2.api.delete_resources([correctPath], (error, result) => {
+        if (error) {
+          throw { message: 'Error' }
+        }
+      })
+    }
   },
 };
 

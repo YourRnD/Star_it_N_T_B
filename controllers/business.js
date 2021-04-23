@@ -228,8 +228,6 @@ module.exports = ({ router, actions, db, validators }) => {
           ...reqData
         });
 
-        console.log(uploadPath);
-
         business.add({
           ...reqData,
           path: uploadPath,

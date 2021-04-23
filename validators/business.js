@@ -4,8 +4,6 @@ const ValidationError = require('../common/ValidationError');
 
 const businessFields = [
   'name',
-  'image',
-  'typeImage',
   'pageNumber',
   'value',
   'mac',
@@ -42,21 +40,34 @@ class BusinessValidate {
       throw ValidationError('mac', '"payload.mac" is not correctly!');
     }
 
-    if (!_.isString(payload.image)) {
-      throw ValidationError('image', '"payload.image" can only be a string!');
+    if (!_.isArray(payload.image)) {
+      throw ValidationError('image', '"payload.image" can only be an array!');
     }
 
-    const matches = payload.image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    const base64 = [];
 
-    if (matches == null || matches.length !== 3) {
-      throw ValidationError('image', '"payload.image" invalid input string!');
-    }
+    payload.image.forEach(element => {
+      if (!_.isString(element)) {
+        throw ValidationError('image', '"payload.image"\'s children can only be a string!');
+      }
+
+      const matches = element.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+
+      if (matches == null || matches.length !== 3) {
+        throw ValidationError('image', '"payload.image"\'s children invalid input string!');
+      }
+
+      base64.push({
+        base64Img: element,
+        typeImage: matches[1],
+        image: matches[2]
+      });
+    });
+
 
     return _.pick({
       name: payload.name,
-      typeImage: matches[1],
-      image: matches[2],
-      base64: payload.image,
+      base64,
       mac: payload.mac,
     }, businessFields);
   }
@@ -122,19 +133,31 @@ class BusinessValidate {
 
     if (payload.image) {
 
-      if (!_.isString(payload.image)) {
-        throw ValidationError('image', '"payload.image" can only be a string!');
+      if (!_.isArray(payload.image)) {
+        throw ValidationError('image', '"payload.image" can only be an array!');
       }
 
-      const matches = payload.image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      const base64 = [];
 
-      if (matches == null || matches.length !== 3) {
-        throw ValidationError('image', '"payload.image" invalid input string!');
-      }
+      payload.image.forEach(element => {
+        if (!_.isString(element)) {
+          throw ValidationError('image', '"payload.image"\'s children can only be a string!');
+        }
 
-      payloadCopy.typeImage = matches[1];
-      payloadCopy.image = matches[2];
-      payloadCopy.base64 = payload.image;
+        const matches = element.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+
+        if (matches == null || matches.length !== 3) {
+          throw ValidationError('image', '"payload.image"\'s children invalid input string!');
+        }
+
+        base64.push({
+          base64Img: element,
+          typeImage: matches[1],
+          image: matches[2]
+        });
+      });
+
+      payloadCopy.base64 = base64;
 
     }
 
