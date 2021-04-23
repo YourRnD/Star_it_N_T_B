@@ -228,6 +228,8 @@ module.exports = ({ router, actions, db, validators }) => {
           ...reqData
         });
 
+        console.log(uploadPath);
+
         business.add({
           ...reqData,
           path: uploadPath,
@@ -359,7 +361,6 @@ module.exports = ({ router, actions, db, validators }) => {
     }),
     async (req, res) => {
       try {
-
         const reqData = businessValidate.update(req.params.id, req.body.payload);
 
         const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
@@ -379,7 +380,7 @@ module.exports = ({ router, actions, db, validators }) => {
 
         if (
           (userData?.rightId == 3 && managerBusiness.rows[0]?.idbusiness != req.params.id)
-          || userData?.rightId != 2
+          || (userData?.rightId != 2 && userData?.rightId != 3)
         ) {
           throw {
             status: HttpStatus.FORBIDDEN,
@@ -404,12 +405,6 @@ module.exports = ({ router, actions, db, validators }) => {
             }
 
             const oldPath = result.rows[0].path;
-
-            if (!(await photo.checkPuthFunc({ path: oldPath }))) {
-              throw {
-                message: "The path is incorrect"
-              }
-            }
 
             const businessDate = {
               name: reqData?.name

@@ -14,5 +14,8 @@ module.exports = {
     "oct",
     "nov",
     "dec",
-  ]
+  ],
+  imgageApiKey: 655839123474539,
+  imageApiSecret: 'Ph9OnGtNtyR3b3J0UoySe0D2N_c',
+  imageCloudName: 'dvcwgpxi5'
 }

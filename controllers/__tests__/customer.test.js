@@ -5,7 +5,7 @@ let adminToken;
 let customerToken;
 const mac = 'D0:AA:E5:E1:8E:CE';
 const extraMac = '4D:56:DD:21:8B:77';
-const emailCustomer = 'test.auth@gmail.com';
+const emailCustomer = 'test.customer@gmail.com';
 const passwordCustomer = 'Qwerty_322';
 const emailAdmin = '28filosof28@gmail.com';
 const passwordAdmin = 'Qwerty_322';
@@ -614,7 +614,7 @@ describe('Tests for business controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "name": "Test user",
+            "name": "Test user changed",
             "email": `${emailCustomer}`,
             "password": `${passwordCustomer}`,
             "mac": `${mac}`

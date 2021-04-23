@@ -781,7 +781,7 @@ describe('Tests for business controller', () => {
   });
 
 
-  describe('DELETE api/business/:id', async () => {
+  describe('DELETE api/business/:id', () => {
     test('Error! Delete business: id is not correctly', async () => {
       const res = await request(app)
         .delete(`/api/business/err`)

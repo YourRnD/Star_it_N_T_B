@@ -11,6 +11,7 @@ module.exports = ({ router, actions, db, validators }) => {
 
   const routes = router();
   const customer = actions.customer({ db });
+  const manager = actions.manager({ db });
   const { authValidate } = validators.auth;
 
   //api/auth/signup
@@ -80,7 +81,7 @@ module.exports = ({ router, actions, db, validators }) => {
       const reqData = authValidate.get(req.query);
 
       customer.getUserByEmail(reqData)
-        .then(result => {
+        .then(async (result) => {
 
           if (result.rows.length <= 0) {
             throw {
@@ -108,17 +109,28 @@ module.exports = ({ router, actions, db, validators }) => {
                 expiresIn: 60 * 60 * 24
               });
 
+              const user = {
+                id: result.rows[0].idcustomer,
+                name: result.rows[0].name,
+                email: result.rows[0].email,
+                userStatus: result.rows[0].status_name
+              }
+
+              if (result.rows[0].status_name === 'manager') {
+                const business = await manager.get(result.rows[0].idcustomer);
+
+                business?.rows[0]?.idbusiness
+                  ? user.business = business?.rows[0]?.idbusiness
+                  : null;
+              }
+
               response.status(
                 HttpStatus.OK,
                 {
                   message: 'User find!',
                   accessToken: `Bearer ${accessToken}`,
                   refreshToken: `Bearer ${refreshToken}`,
-                  user: {
-                    id: result.rows[0].idcustomer,
-                    name: result.rows[0].name,
-                    email: result.rows[0].email
-                  }
+                  user
                 },
                 res
               );
@@ -240,7 +252,7 @@ module.exports = ({ router, actions, db, validators }) => {
 
         customer
           .get(userData.userId)
-          .then(result => {
+          .then(async (result) => {
             if (result.rows.length === 0) {
               throw {
                 status: HttpStatus.UNAUTHORIZED,
@@ -249,13 +261,25 @@ module.exports = ({ router, actions, db, validators }) => {
                 }
               }
             }
+
+            const user = {
+              id: result.rows[0].idcustomer,
+              name: result.rows[0].name,
+              email: result.rows[0].email,
+              userStatus: result.rows[0].status_name
+            }
+
+            if (result.rows[0].status_name === 'manager') {
+              const business = await manager.get(result.rows[0].idcustomer);
+
+              business?.rows[0]?.idbusiness
+                ? user.business = business?.rows[0]?.idbusiness
+                : null;
+            }
+
             response.status(HttpStatus.OK, {
               message: 'User find!',
-              user: {
-                id: result.rows[0].idcustomer,
-                name: result.rows[0].name,
-                email: result.rows[0].email
-              }
+              user
             }, res);
           })
           .catch(e => {

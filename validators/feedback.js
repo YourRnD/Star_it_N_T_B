@@ -10,7 +10,8 @@ const feedbackFields = [
   'image',
   'typeImage',
   'pageNumber',
-  'value'
+  'value',
+  'base64'
 ];
 
 class FeedbackValidate {
@@ -74,7 +75,8 @@ class FeedbackValidate {
       return _.pick({
         ...payload,
         typeImage: matches[1],
-        image: matches[2]
+        image: matches[2],
+        base64: payload.image
       }, feedbackFields);
 
     }
@@ -170,6 +172,7 @@ class FeedbackValidate {
 
       payloadCopy.typeImage = matches[1];
       payloadCopy.image = matches[2];
+      payloadCopy.base64 = payload.image;
 
     }
 

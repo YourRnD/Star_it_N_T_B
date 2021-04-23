@@ -381,17 +381,28 @@ module.exports = ({ router, actions, db, validators }) => {
               }
             )
               .then(result => {
-                response.status(
-                  HttpStatus.OK,
-                  {
-                    message: 'User updated successfully!',
-                    user: {
-                      id: result.rows[0].idcustomer,
-                      name: result.rows[0].name,
-                      email: result.rows[0].email
-                    }
-                  },
-                  res);
+                customer.get(result.rows[0].idcustomer)
+                  .then(result => {
+                    response.status(
+                      HttpStatus.OK,
+                      {
+                        message: 'User updated successfully!',
+                        user: {
+                          id: result.rows[0].idcustomer,
+                          name: result.rows[0].name,
+                          email: result.rows[0].email,
+                          userStatus: result.rows[0].status_name
+                        }
+                      },
+                      res);
+                  })
+                  .catch(e => {
+                    response.status(
+                      e?.status || HttpStatus.BAD_REQUEST,
+                      e?.body || e,
+                      res
+                    );
+                  });
               })
               .catch(e => {
                 response.status(

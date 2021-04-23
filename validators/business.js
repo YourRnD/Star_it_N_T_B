@@ -8,7 +8,8 @@ const businessFields = [
   'typeImage',
   'pageNumber',
   'value',
-  'mac'
+  'mac',
+  'base64'
 ];
 
 class BusinessValidate {
@@ -55,6 +56,7 @@ class BusinessValidate {
       name: payload.name,
       typeImage: matches[1],
       image: matches[2],
+      base64: payload.image,
       mac: payload.mac,
     }, businessFields);
   }
@@ -132,6 +134,7 @@ class BusinessValidate {
 
       payloadCopy.typeImage = matches[1];
       payloadCopy.image = matches[2];
+      payloadCopy.base64 = payload.image;
 
     }
 

@@ -160,6 +160,46 @@ class PointValidate {
     return _.pick(payload, pointFields);
   }
 
+  getAllWithBudinessId(payload) {
+    if (!payload) {
+      throw ValidationError('payload', '"payload" is required!');
+    }
+
+    if (!payload.pageNumber) {
+      throw ValidationError('pageNumber', '"payload.pageNumber" is required!');
+    }
+
+    if (!payload.mac) {
+      throw ValidationError('mac', '"payload.mac" is required!');
+    }
+
+    if (!payload.businessId) {
+      throw ValidationError('businessId', '"payload.businessId" is required!');
+    }
+
+    if (!validator.isInt(`${payload.pageNumber}`)) {
+      throw ValidationError('pageNumber', '"payload.pageNumber" can only be an integer!');
+    }
+
+    if (!_.isString(payload.mac)) {
+      throw ValidationError('mac', '"payload.mac" can only be a string!');
+    }
+
+    if (!validator.isInt(`${payload.businessId}`)) {
+      throw ValidationError('businessId', '"payload.businessId" can only be an integer!');
+    }
+
+    if (payload.pageNumber < 0) {
+      throw ValidationError('pageNumber', '"payload.pageNumber" cannot be less than zero!');
+    }
+
+    if (!validator.isMACAddress(payload.mac)) {
+      throw ValidationError('mac', '"payload.mac" is not correctly!');
+    }
+
+    return _.pick(payload, pointFields);
+  }
+
   get(_id, payload) {
     if (!validator.isInt(`${_id}`)) {
       throw ValidationError('id', '"id" can only be an integer!');

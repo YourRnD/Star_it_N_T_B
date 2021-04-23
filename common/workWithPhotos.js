@@ -1,57 +1,53 @@
 const config = require('../config');
 
 const fs = require('fs');
-const shortid = require('shortid');
+const cloudinary = require('cloudinary');
+
+cloudinary.config({
+  cloud_name: config.imageCloudName,
+  api_key: config.imgageApiKey,
+  api_secret: config.imageApiSecret
+});
+
+const pathConvector = (path) => {
+  let id = path.split('/').pop();
+  return id.split('.')[0];
+}
 
 module.exports = {
-  checkPuthFunc: ({ path }) => {
-    if (!fs.existsSync(path)) {
-      return false;
-    }
+  checkPuthFunc: async ({ path }) => {
+    const correctPath = pathConvector(path);
 
-    return true;
+    const check = await cloudinary.v2.api.resources_by_ids([correctPath], (error, result) => {
+      if (error || result.resources.length === 0) {
+        return false;
+      }
+
+      return true;
+    })
+
+    return check;
   },
 
-  uploadPhotoFunc: async ({ typeImage, image }) => {
-    const typeFile = typeImage.split('/').pop();
-    const file = new Buffer.from(image, 'base64');
+  uploadPhotoFunc: async ({ base64 }) => {
+    const response = await cloudinary.v2.uploader.upload(base64, (error, result) => {
+      if (error) {
+        throw { message: 'Error' }
+      }
+      return result;
+    });
 
-    if (['png', 'jpg', 'jpeg'].indexOf(typeFile) === -1) {
-      throw {
-        message: "Invalid file type!"
-      };
-    }
-
-    if (Math.floor(file.length / 100000) / 10 > 1.5) {
-      throw {
-        message: "Image size exceeded!"
-      };
-    }
-
-    const date = new Date();
-    const folderName = `${config.months[date.getMonth()]}-${date.getFullYear()}`;
-    let uploadPath = `${config.rootPath}/assets`;
-
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath);
-    }
-
-    uploadPath = `${config.rootPath}/assets/${folderName}`;
-
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath);
-    }
-
-    uploadPath = `${uploadPath}/${shortid.generate()}.${typeFile}`;
-
-    await fs.writeFileSync(uploadPath, file);
-
-    return uploadPath;
+    return response.url;
   },
 
   deletePhotoFunc: ({ path }) => {
+    const correctPath = pathConvector(path);
 
-    fs.unlinkSync(path);
+    cloudinary.v2.api.delete_resources([correctPath], (error, result) => {
+      if (error) {
+        throw { message: 'Error' }
+      }
+    })
 
   },
 };

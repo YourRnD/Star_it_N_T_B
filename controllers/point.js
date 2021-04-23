@@ -74,6 +74,66 @@ module.exports = ({ router, actions, db, validators }) => {
     }
   )
 
+  //api/point/group-by-business
+  routes.get(
+    '/group-by-business',
+    passport.authenticate('jwt', {
+      session: false,
+
+    }),
+    (req, res) => {
+
+      try {
+        const reqData = pointValidate.getAllWithBudinessId(req.query);
+        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+
+        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+          throw {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              message: 'Fatal error, please log in again'
+            }
+          }
+        }
+
+        point.getAllWithBusinessId(reqData.pageNumber * 10, reqData.businessId)
+          .then(result => {
+            if (result.rows.length === 0) {
+              throw {
+                message: 'No records find!'
+              }
+            }
+            let points = result.rows.map((item) => {
+              return {
+                id: item.idpoint,
+                name: item.name,
+                address: item.address
+              }
+            });
+            response.status(HttpStatus.OK, {
+              message: 'Points find!',
+              points,
+              countPages: Math.ceil(result.rows[0].count_rows / 10),
+            }, res);
+          })
+          .catch(e => {
+            response.status(
+              e?.status || HttpStatus.BAD_REQUEST,
+              e?.body || e,
+              res
+            );
+          });
+      } catch (e) {
+        response.status(
+          e?.status || HttpStatus.BAD_REQUEST,
+          e?.body || e,
+          res
+        );
+      }
+
+    }
+  )
+
   //api/point/search
   routes.get(
     '/search',

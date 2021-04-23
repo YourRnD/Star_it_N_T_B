@@ -21,9 +21,9 @@ module.exports = ({ db }) => ({
     const { name, email, password, idright } = payload;
 
     return db.query(
-      `UPDATE customer 
-      SET name = $1, email = $2, 
-      password = $3, idright = $4
+      `UPDATE customer
+      SET name = $1, email = $2,
+      password = $3, idright = $4 
       WHERE idcustomer = $5 RETURNING *`,
       [name, email, password, idright, _id]
     );
@@ -31,8 +31,11 @@ module.exports = ({ db }) => ({
 
   get: (_id) => {
     return db.query(
-      `SELECT * 
+      `SELECT customer.name, email,
+      password, user_right.name as status_name,
+      customer.idright, idcustomer
       FROM customer
+      JOIN user_right ON customer.idright = user_right.idright
       WHERE idcustomer = $1`,
       [_id]
     );
@@ -61,7 +64,11 @@ module.exports = ({ db }) => ({
     const { email } = payload;
 
     return db.query(
-      `SELECT * FROM customer 
+      `SELECT customer.name, email,
+      password, user_right.name as status_name,
+      customer.idright, idcustomer
+      FROM customer
+      JOIN user_right ON customer.idright = user_right.idright
       WHERE email = $1`,
       [email]
     );

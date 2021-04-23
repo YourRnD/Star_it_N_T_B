@@ -27,6 +27,16 @@ module.exports = ({ db }) => ({
     );
   },
 
+  getAllWithBusinessId: (pageStart, businesId) => {
+    return db.query(
+      `SELECT *, (
+        SELECT COUNT(*) FROM point
+      ) as count_rows FROM point
+      WHERE idbusiness = ${businesId}
+      LIMIT 10 OFFSET ${pageStart}`
+    );
+  },
+
   get: (_id) => {
     return db.query(
       `SELECT * FROM point
