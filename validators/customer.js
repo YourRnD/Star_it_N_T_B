@@ -8,33 +8,16 @@ const customerFields = [
   'password',
   'value',
   'pageNumber',
-  'mac',
   'status'
 ];
 
 class CustomerValidate {
-  get(_id, payload) {
+  get(_id) {
+
     if (!validator.isInt(`${_id}`)) {
       throw ValidationError('id', '"id" can only be an integer!');
     }
 
-    if (!payload) {
-      throw ValidationError('payload', '"payload" is required!');
-    }
-
-    if (!payload.mac) {
-      throw ValidationError('mac', '"payload.mac" is required!');
-    }
-
-    if (!_.isString(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" can only be a string!');
-    }
-
-    if (!validator.isMACAddress(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" is not correctly!');
-    }
-
-    return _.pick(payload, customerFields);
   }
 
   getAll(payload) {
@@ -46,24 +29,12 @@ class CustomerValidate {
       throw ValidationError('pageNumber', '"payload.pageNumber" is required!');
     }
 
-    if (!payload.mac) {
-      throw ValidationError('mac', '"payload.mac" is required!');
-    }
-
     if (!validator.isInt(`${payload.pageNumber}`)) {
       throw ValidationError('pageNumber', '"payload.pageNumber" can only be an integer!');
     }
 
-    if (!_.isString(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" can only be a string!');
-    }
-
     if (payload.pageNumber < 0) {
       throw ValidationError('pageNumber', '"payload.pageNumber" cannot be less than zero!');
-    }
-
-    if (!validator.isMACAddress(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" is not correctly!');
     }
 
     return _.pick(payload, customerFields);
@@ -82,52 +53,23 @@ class CustomerValidate {
       throw ValidationError('value', '"payload.value" is required!');
     }
 
-    if (!payload.mac) {
-      throw ValidationError('mac', '"payload.mac" is required!');
-    }
-
     if (!validator.isInt(`${payload.pageNumber}`)) {
       throw ValidationError('pageNumber', '"payload.pageNumber" can only be an integer!');
-    }
-
-    if (!_.isString(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" can only be a string!');
     }
 
     if (payload.pageNumber < 0) {
       throw ValidationError('pageNumber', '"payload.pageNumber" cannot be less than zero!');
     }
 
-    if (!validator.isMACAddress(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" is not correctly!');
-    }
-
     return _.pick(payload, customerFields);
   }
 
-  delete(_id, payload) {
+  delete(_id) {
 
     if (!validator.isInt(`${_id}`)) {
       throw ValidationError('id', '"id" can only be an integer!');
     }
 
-    if (!payload) {
-      throw ValidationError('payload', '"payload" is required!');
-    }
-
-    if (!payload.mac) {
-      throw ValidationError('mac', '"payload.mac" is required!');
-    }
-
-    if (!_.isString(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" can only be a string!');
-    }
-
-    if (!validator.isMACAddress(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" is not correctly!');
-    }
-
-    return _.pick(payload, customerFields);
   }
 
   update(_id, payload) {
@@ -137,18 +79,6 @@ class CustomerValidate {
 
     if (!payload) {
       throw ValidationError('payload', '"payload" is required!');
-    }
-
-    if (!payload.mac) {
-      throw ValidationError('mac', '"payload.mac" is required!');
-    }
-
-    if (!_.isString(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" can only be a string!');
-    }
-
-    if (!validator.isMACAddress(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" is not correctly!');
     }
 
     if (payload.name) {

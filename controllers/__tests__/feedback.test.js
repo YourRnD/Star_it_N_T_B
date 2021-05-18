@@ -3,8 +3,6 @@ const app = require('../../app');
 
 let adminToken;
 let customerToken;
-const mac = 'D0:AA:E5:E1:8E:CE';
-const extraMac = '4D:56:DD:21:8B:77';
 const emailCustomer = 'test.feedback@gmail.com';
 const passwordCustomer = 'Qwerty_322';
 const emailAdmin = '28filosof28@gmail.com';
@@ -40,7 +38,7 @@ describe('Tests for feedback controller', () => {
     test('Login new user', async () => {
 
       let res = await request(app)
-        .get(`/api/auth/signin?email=${emailCustomer}&password=${passwordCustomer}&mac=${mac}`);
+        .get(`/api/auth/signin?email=${emailCustomer}&password=${passwordCustomer}`);
 
       customerToken = res.body.accessToken;
       customerId = res.body.user.id;
@@ -51,7 +49,7 @@ describe('Tests for feedback controller', () => {
     test('Login admin user', async () => {
 
       let res = await request(app)
-        .get(`/api/auth/signin?email=${emailAdmin}&password=${passwordAdmin}&mac=${mac}`);
+        .get(`/api/auth/signin?email=${emailAdmin}&password=${passwordAdmin}`);
 
       adminToken = res.body.accessToken;
       adminId = res.body.user.id;
@@ -66,8 +64,7 @@ describe('Tests for feedback controller', () => {
         .send({
           "payload": {
             "name": "Test business",
-            "image": successImageForBusiness,
-            "mac": mac
+            "image": [successImageForBusiness]
           }
         });
 
@@ -84,7 +81,6 @@ describe('Tests for feedback controller', () => {
           "payload": {
             "name": "Test point",
             "address": "Тестовый адрес точки",
-            "mac": mac,
             "businessId": businessId
           }
         });
@@ -108,27 +104,12 @@ describe('Tests for feedback controller', () => {
       expect(res.body.message).toMatch('"payload" is required!');
     });
 
-    test('Error! Add new feedback: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .post('/api/feedback')
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {}
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
     test('Error! Add new feedback: payload has no "idPoint" property', async () => {
       const res = await request(app)
         .post('/api/feedback')
         .set({ 'Authorization': customerToken })
         .send({
-          "payload": {
-            "mac": mac
-          }
+          "payload": {}
         });
 
       expect(res.status).toEqual(400);
@@ -142,7 +123,6 @@ describe('Tests for feedback controller', () => {
         .set({ 'Authorization': customerToken })
         .send({
           "payload": {
-            "mac": mac,
             "idPoint": pointId
           }
         });
@@ -158,7 +138,6 @@ describe('Tests for feedback controller', () => {
         .set({ 'Authorization': customerToken })
         .send({
           "payload": {
-            "mac": mac,
             "idPoint": pointId,
             "rating": 1,
           }
@@ -169,42 +148,6 @@ describe('Tests for feedback controller', () => {
       expect(res.body.message).toMatch('"payload.notes" is required!');
     });
 
-    test('Error! Add new feedback: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .post('/api/feedback')
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "idPoint": pointId,
-            "rating": 1,
-            "notes": "Плохой отзыв",
-            "mac": 123
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" can only be a string!');
-    });
-
-    test('Error! Add new feedback: property "mac" can only be a Mac address string', async () => {
-      const res = await request(app)
-        .post('/api/feedback')
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "idPoint": pointId,
-            "rating": 1,
-            "notes": "Плохой отзыв",
-            "mac": "error"
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
     test('Error! Add new feedback: property "idPoint" can only be an integer', async () => {
       const res = await request(app)
         .post('/api/feedback')
@@ -213,8 +156,7 @@ describe('Tests for feedback controller', () => {
           "payload": {
             "idPoint": "error",
             "rating": 1,
-            "notes": "Плохой отзыв",
-            "mac": mac
+            "notes": "Плохой отзыв"
           }
         });
 
@@ -231,8 +173,7 @@ describe('Tests for feedback controller', () => {
           "payload": {
             "idPoint": pointId,
             "rating": "error",
-            "notes": "Плохой отзыв",
-            "mac": mac
+            "notes": "Плохой отзыв"
           }
         });
 
@@ -249,8 +190,7 @@ describe('Tests for feedback controller', () => {
           "payload": {
             "idPoint": pointId,
             "rating": 1,
-            "notes": 123,
-            "mac": mac
+            "notes": 123
           }
         });
 
@@ -267,8 +207,7 @@ describe('Tests for feedback controller', () => {
           "payload": {
             "idPoint": pointId,
             "rating": 6,
-            "notes": "Плохой отзыв",
-            "mac": mac
+            "notes": "Плохой отзыв"
           }
         });
 
@@ -286,14 +225,31 @@ describe('Tests for feedback controller', () => {
             "idPoint": pointId,
             "rating": 1,
             "notes": "Плохой отзыв",
-            "image": 1,
-            "mac": mac
+            "image": 1
           }
         });
 
       expect(res.status).toEqual(400);
       expect(res.body.param).toMatch('image');
-      expect(res.body.message).toMatch('"payload.image" can only be a string!');
+      expect(res.body.message).toMatch('"payload.image" can only be an array!');
+    });
+
+    test('Error! Add new feedback: property "image" can only be a string!', async () => {
+      const res = await request(app)
+        .post('/api/feedback')
+        .set({ 'Authorization': customerToken })
+        .send({
+          "payload": {
+            "idPoint": pointId,
+            "rating": 1,
+            "notes": "Плохой отзыв",
+            "image": [1]
+          }
+        });
+
+      expect(res.status).toEqual(400);
+      expect(res.body.param).toMatch('image');
+      expect(res.body.message).toMatch('"payload.image"\'s children can only be a string!');
     });
 
     test('Error! Add new feedback: property "image" invalid input string!', async () => {
@@ -305,32 +261,13 @@ describe('Tests for feedback controller', () => {
             "idPoint": pointId,
             "rating": 1,
             "notes": "Плохой отзыв",
-            "image": "ssss",
-            "mac": mac
+            "image": ["ssss"]
           }
         });
 
       expect(res.status).toEqual(400);
       expect(res.body.param).toMatch('image');
-      expect(res.body.message).toMatch('"payload.image" invalid input string!');
-    });
-
-    test('Error! Add new feedback: another mac address', async () => {
-      const res = await request(app)
-        .post('/api/feedback')
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "idPoint": pointId,
-            "rating": 1,
-            "notes": "Плохой отзыв",
-            "image": "data:image/svg;base64,ssss",
-            "mac": extraMac
-          }
-        });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
+      expect(res.body.message).toMatch('"payload.image"\'s children invalid input string!');
     });
 
     test('Error! Add new feedback: invalid file type!', async () => {
@@ -342,31 +279,12 @@ describe('Tests for feedback controller', () => {
             "idPoint": pointId,
             "rating": 1,
             "notes": "Плохой отзыв",
-            "image": "data:image/svg;base64,ssss",
-            "mac": mac
+            "image": ["data:image/svg;base64,ssss"]
           }
         });
 
       expect(res.status).toEqual(400);
-      expect(res.body.message).toMatch('Invalid file type!');
-    });
-
-    test('Error! Add new feedback: image size exceeded!', async () => {
-      const res = await request(app)
-        .post('/api/feedback')
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "idPoint": pointId,
-            "rating": 1,
-            "notes": "Плохой отзыв",
-            "image": errorImageForBusiness,
-            "mac": mac
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.message).toMatch('Image size exceeded!');
+      expect(res.body.message).toMatch('Invalid image file');
     });
 
     test('Succsess! Add new feedback', async () => {
@@ -378,44 +296,7 @@ describe('Tests for feedback controller', () => {
             "idPoint": pointId,
             "rating": 1,
             "notes": "Плохой отзыв",
-            "image": successImageForBusiness,
-            "mac": mac
-          }
-        });
-
-      expect(res.status).toEqual(200);
-      expect(res.body).toHaveProperty('feedback');
-      expect(res.body.message).toMatch('Review added successfully!');
-
-      feedbackId = res.body.feedback.id;
-    });
-
-    test('Success! Delete feedback', async () => {
-      const res = await request(app)
-        .delete(`/api/feedback/${feedbackId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
-
-
-      expect(res.status).toEqual(200);
-      expect(res.body).toHaveProperty('feedback');
-      expect(res.body.message).toMatch('Review successfully deleted!');
-    });
-
-    test('Succsess! Add new feedback', async () => {
-      const res = await request(app)
-        .post('/api/feedback')
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "idPoint": pointId,
-            "rating": 1,
-            "notes": "Bad review",
-            "mac": mac
+            "image": [successImageForBusiness]
           }
         });
 
@@ -439,48 +320,9 @@ describe('Tests for feedback controller', () => {
       expect(res.body.message).toMatch('"id" can only be an integer!');
     });
 
-    test('Error! Get feedback: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .get(`/api/feedback/${feedbackId}`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
-    test('Error! Get feedback: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .get(`/api/feedback/${feedbackId}?mac=1`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Get feedback: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .get(`/api/feedback/${feedbackId}?mac=error`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Get feedback: another mac address', async () => {
-      const res = await request(app)
-        .get(`/api/feedback/${feedbackId}?mac=${extraMac}`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Error! Get feedback: not enough rights!', async () => {
       const res = await request(app)
-        .get(`/api/feedback/${feedbackId}?mac=${mac}`)
+        .get(`/api/feedback/${feedbackId}`)
         .set({ 'Authorization': customerToken });
 
       expect(res.status).toEqual(403);
@@ -489,7 +331,7 @@ describe('Tests for feedback controller', () => {
 
     test('Success! Get a feedback by id', async () => {
       const res = await request(app)
-        .get(`/api/feedback/${feedbackId}?mac=${mac}`)
+        .get(`/api/feedback/${feedbackId}`)
         .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
@@ -520,19 +362,9 @@ describe('Tests for feedback controller', () => {
       expect(res.body.message).toMatch('"payload.value" is required!');
     });
 
-    test('Error! Search feedbackes: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .get(`/api/feedback/search?pageNumber=0&value=user`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
     test('Error! Search feedbackes: property "pageNumber" can only be an integer', async () => {
       const res = await request(app)
-        .get(`/api/feedback/search?pageNumber=asd&value=user&mac=${mac}`)
+        .get(`/api/feedback/search?pageNumber=asd&value=user`)
         .set({ 'Authorization': customerToken });
 
       expect(res.status).toEqual(400);
@@ -540,19 +372,9 @@ describe('Tests for feedback controller', () => {
       expect(res.body.message).toMatch('"payload.pageNumber" can only be an integer!');
     });
 
-    test('Error! Search feedbackes: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .get(`/api/feedback/search?pageNumber=0&value=user&mac=1`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
     test('Error! Search feedbackes: property "pageNumber" cannot be less than zero', async () => {
       const res = await request(app)
-        .get(`/api/feedback/search?pageNumber=-1&value=Test user&mac=${mac}`)
+        .get(`/api/feedback/search?pageNumber=-1&value=Test user`)
         .set({ 'Authorization': customerToken });
 
       expect(res.status).toEqual(400);
@@ -560,28 +382,9 @@ describe('Tests for feedback controller', () => {
       expect(res.body.message).toMatch('"payload.pageNumber" cannot be less than zero!');
     });
 
-    test('Error! Search feedbackes: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .get(`/api/feedback/search?pageNumber=0&value=Test user&mac=error`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Search feedbackes: another mac address', async () => {
-      const res = await request(app)
-        .get(`/api/feedback/search?pageNumber=0&value=Test user&mac=${extraMac}`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Error! Search feedbackes: no records find!', async () => {
       const res = await request(app)
-        .get(`/api/feedback/search?pageNumber=100000000000000&value=Test user&mac=${mac}`)
+        .get(`/api/feedback/search?pageNumber=100000000000000&value=Test user`)
         .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(400);
@@ -590,7 +393,7 @@ describe('Tests for feedback controller', () => {
 
     test('Success! Search feedbackes', async () => {
       const res = await request(app)
-        .get(`/api/feedback/search?pageNumber=0&value=Test point&mac=${mac}`)
+        .get(`/api/feedback/search?pageNumber=0&value=Test point`)
         .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
@@ -611,19 +414,9 @@ describe('Tests for feedback controller', () => {
       expect(res.body.message).toMatch('"payload.pageNumber" is required!');
     });
 
-    test('Error! Get all feedbackes: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .get(`/api/feedback?pageNumber=0`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
     test('Error! Get all feedbackes: property "pageNumber" can only be an integer', async () => {
       const res = await request(app)
-        .get(`/api/feedback?pageNumber=asd&mac=${mac}`)
+        .get(`/api/feedback?pageNumber=asd`)
         .set({ 'Authorization': customerToken });
 
       expect(res.status).toEqual(400);
@@ -631,19 +424,9 @@ describe('Tests for feedback controller', () => {
       expect(res.body.message).toMatch('"payload.pageNumber" can only be an integer!');
     });
 
-    test('Error! Get all feedbackes: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .get(`/api/feedback?pageNumber=0&mac=1`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
     test('Error! Get all feedbackes: property "pageNumber" cannot be less than zero', async () => {
       const res = await request(app)
-        .get(`/api/feedback?pageNumber=-1&mac=${mac}`)
+        .get(`/api/feedback?pageNumber=-1`)
         .set({ 'Authorization': customerToken });
 
       expect(res.status).toEqual(400);
@@ -651,28 +434,9 @@ describe('Tests for feedback controller', () => {
       expect(res.body.message).toMatch('"payload.pageNumber" cannot be less than zero!');
     });
 
-    test('Error! Get all feedbackes: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .get(`/api/feedback?pageNumber=0&mac=error`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Get all feedbackes: another mac address', async () => {
-      const res = await request(app)
-        .get(`/api/feedback?pageNumber=0&mac=${extraMac}`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Error! Get all feedbackes: no records find!', async () => {
       const res = await request(app)
-        .get(`/api/feedback?pageNumber=100000000000000&mac=${mac}`)
+        .get(`/api/feedback?pageNumber=100000000000000`)
         .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(400);
@@ -681,7 +445,7 @@ describe('Tests for feedback controller', () => {
 
     test('Success! Get all feedbackes', async () => {
       const res = await request(app)
-        .get(`/api/feedback?pageNumber=0&mac=${mac}`)
+        .get(`/api/feedback?pageNumber=0`)
         .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
@@ -713,56 +477,12 @@ describe('Tests for feedback controller', () => {
       expect(res.body.message).toMatch('"payload" is required!');
     });
 
-    test('Error! Update feedback: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .put(`/api/feedback/${feedbackId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {}
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
-    test('Error! Update feedback: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .put(`/api/feedback/${feedbackId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "mac": 123
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" can only be a string');
-    });
-
-    test('Error! Update feedback: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .put(`/api/feedback/${feedbackId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "mac": "err"
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
     test('Error! Update feedback: property "notes" can only be a string', async () => {
       const res = await request(app)
         .put(`/api/feedback/${feedbackId}`)
         .set({ 'Authorization': customerToken })
         .send({
           "payload": {
-            "mac": mac,
             "notes": 1,
           }
         });
@@ -778,7 +498,6 @@ describe('Tests for feedback controller', () => {
         .set({ 'Authorization': customerToken })
         .send({
           "payload": {
-            "mac": mac,
             "idPoint": 'error',
           }
         });
@@ -794,7 +513,6 @@ describe('Tests for feedback controller', () => {
         .set({ 'Authorization': customerToken })
         .send({
           "payload": {
-            "mac": mac,
             "rating": 'error',
           }
         });
@@ -810,7 +528,6 @@ describe('Tests for feedback controller', () => {
         .set({ 'Authorization': customerToken })
         .send({
           "payload": {
-            "mac": mac,
             "rating": 6,
           }
         });
@@ -826,14 +543,28 @@ describe('Tests for feedback controller', () => {
         .set({ 'Authorization': customerToken })
         .send({
           "payload": {
-            "mac": mac,
             "image": 1
           }
         });
 
       expect(res.status).toEqual(400);
       expect(res.body.param).toMatch('image');
-      expect(res.body.message).toMatch('"payload.image" can only be a string!');
+      expect(res.body.message).toMatch('"payload.image" can only be an array!');
+    });
+
+    test('Error! Update feedback: property "image" can only be a string', async () => {
+      const res = await request(app)
+        .put(`/api/feedback/${feedbackId}`)
+        .set({ 'Authorization': customerToken })
+        .send({
+          "payload": {
+            "image": [1]
+          }
+        });
+
+      expect(res.status).toEqual(400);
+      expect(res.body.param).toMatch('image');
+      expect(res.body.message).toMatch('"payload.image"\'s children can only be a string!');
     });
 
     test('Error! Update feedback: property "image" invalid input string!', async () => {
@@ -842,42 +573,13 @@ describe('Tests for feedback controller', () => {
         .set({ 'Authorization': customerToken })
         .send({
           "payload": {
-            "mac": mac,
-            "image": "ssss"
+            "image": ["ssss"]
           }
         });
 
       expect(res.status).toEqual(400);
       expect(res.body.param).toMatch('image');
-      expect(res.body.message).toMatch('"payload.image" invalid input string!');
-    });
-
-    test('Error! Update feedback: another mac address', async () => {
-      const res = await request(app)
-        .put(`/api/feedback/${feedbackId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "mac": `${extraMac}`
-          }
-        });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
-    test('Error! Update feedback: not enough rights!', async () => {
-      const res = await request(app)
-        .put(`/api/feedback/${feedbackId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
-
-      expect(res.status).toEqual(403);
-      expect(res.body.message).toMatch('Not enough rights!');
+      expect(res.body.message).toMatch('"payload.image"\'s children invalid input string!');
     });
 
     test('Error! Update feedback: invalid file type!', async () => {
@@ -886,28 +588,12 @@ describe('Tests for feedback controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
-            "image": "data:image/svg;base64,ssss"
+            "image": ["data:image/svg;base64,ssss"]
           }
         });
 
       expect(res.status).toEqual(400);
-      expect(res.body.message).toMatch('Invalid file type!');
-    });
-
-    test('Error! Update feedback: image size exceeded!', async () => {
-      const res = await request(app)
-        .put(`/api/feedback/${feedbackId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": mac,
-            "image": errorImageForBusiness
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.message).toMatch('Image size exceeded!');
+      expect(res.body.message).toMatch('Invalid image file');
     });
 
     test('Error! Update feedback: id does not exist!', async () => {
@@ -916,8 +602,7 @@ describe('Tests for feedback controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
-            "image": successImageForBusiness
+            "image": [successImageForBusiness]
           }
         });
 
@@ -931,7 +616,6 @@ describe('Tests for feedback controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
             "notes": "Bad review"
           }
         });
@@ -947,7 +631,6 @@ describe('Tests for feedback controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
             "rating": 1
           }
         });
@@ -963,7 +646,6 @@ describe('Tests for feedback controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
             "idPoint": pointId
           }
         });
@@ -979,8 +661,7 @@ describe('Tests for feedback controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
-            "image": successImageForBusiness
+            "image": [successImageForBusiness]
           }
         });
 
@@ -995,11 +676,10 @@ describe('Tests for feedback controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
             "idPoint": pointId,
             "rating": 1,
             "notes": "Bad review",
-            "image": successImageForBusiness
+            "image": [successImageForBusiness]
           }
         });
 
@@ -1025,83 +705,10 @@ describe('Tests for feedback controller', () => {
       expect(res.body.message).toMatch('"id" can only be an integer!');
     });
 
-    test('Error! Delete feedback: no payload object', async () => {
-      const res = await request(app)
-        .delete(`/api/feedback/${feedbackId}`)
-        .set({ 'Authorization': customerToken })
-        .send({});
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('payload');
-      expect(res.body.message).toMatch('"payload" is required!');
-    });
-
-    test('Error! Delete feedback: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .delete(`/api/feedback/${feedbackId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {}
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
-    test('Error! Delete feedback: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .delete(`/api/feedback/${feedbackId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "mac": 123
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" can only be a string');
-    });
-
-    test('Error! Delete feedback: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .delete(`/api/feedback/${feedbackId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "mac": "err"
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Delete feedback: another mac address', async () => {
-      const res = await request(app)
-        .delete(`/api/feedback/${feedbackId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "mac": `${extraMac}`
-          }
-        });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Error! Delete feedback: not enough rights!', async () => {
       const res = await request(app)
         .delete(`/api/feedback/${feedbackId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': customerToken });
 
       expect(res.status).toEqual(403);
       expect(res.body.message).toMatch('Not enough rights!');
@@ -1110,12 +717,7 @@ describe('Tests for feedback controller', () => {
     test('Error! Delete feedback: id is not exist', async () => {
       const res = await request(app)
         .delete(`/api/feedback/-1`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(400);
       expect(res.body.message).toMatch('There is no such review in the database!');
@@ -1124,12 +726,7 @@ describe('Tests for feedback controller', () => {
     test('Success! Delete feedback', async () => {
       const res = await request(app)
         .delete(`/api/feedback/${feedbackId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
       expect(res.body).toHaveProperty('feedback');
@@ -1143,12 +740,7 @@ describe('Tests for feedback controller', () => {
     test('Delete user', async () => {
       const res = await request(app)
         .delete(`/api/customer/${customerId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
     });
@@ -1156,12 +748,7 @@ describe('Tests for feedback controller', () => {
     test('Delete point', async () => {
       const res = await request(app)
         .delete(`/api/point/${pointId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
     });
@@ -1169,12 +756,7 @@ describe('Tests for feedback controller', () => {
     test('Delete business', async () => {
       const res = await request(app)
         .delete(`/api/business/${businessId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
     });

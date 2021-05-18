@@ -62,7 +62,9 @@ module.exports = ({ db }) => ({
   search: (pageStart, value) => {
     return db.query(
       `SELECT *, (
-        SELECT COUNT(*) FROM manager
+        SELECT COUNT(*) FILTER (WHERE c.name @@ '${value}')
+        FROM manager as m
+        JOIN customer as c ON c.idcustomer = m.idcustomer
       ) as count_rows FROM manager as m
       JOIN customer as c ON c.idcustomer = m.idcustomer
       WHERE c.name @@ '${value}'

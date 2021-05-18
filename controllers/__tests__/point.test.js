@@ -4,8 +4,6 @@ const app = require('../../app');
 let adminToken;
 let managerToken;
 let customerToken;
-const mac = 'D0:AA:E5:E1:8E:CE';
-const extraMac = '4D:56:DD:21:8B:77';
 const emailManager = 'test.point.manager@gmail.com';
 const passwordManager = 'Qwerty_322';
 const emailCustomer = 'test.point.customer@gmail.com';
@@ -59,7 +57,7 @@ describe('Tests for point controller', () => {
     test('Login customer', async () => {
 
       let res = await request(app)
-        .get(`/api/auth/signin?email=${emailCustomer}&password=${passwordCustomer}&mac=${mac}`);
+        .get(`/api/auth/signin?email=${emailCustomer}&password=${passwordCustomer}`);
 
       expect(res.status).toEqual(200);
 
@@ -70,7 +68,7 @@ describe('Tests for point controller', () => {
     test('Login admin', async () => {
 
       let res = await request(app)
-        .get(`/api/auth/signin?email=${emailAdmin}&password=${passwordAdmin}&mac=${mac}`);
+        .get(`/api/auth/signin?email=${emailAdmin}&password=${passwordAdmin}`);
 
       expect(res.status).toEqual(200);
 
@@ -85,8 +83,7 @@ describe('Tests for point controller', () => {
         .send({
           "payload": {
             "name": "Test business",
-            "image": successImageForBusiness,
-            "mac": mac
+            "image": [successImageForBusiness]
           }
         });
 
@@ -102,7 +99,6 @@ describe('Tests for point controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
             "status": 3
           }
         });
@@ -118,8 +114,7 @@ describe('Tests for point controller', () => {
         .send({
           "payload": {
             "idCustomer": managerId,
-            "idBusiness": businessId,
-            "mac": mac
+            "idBusiness": businessId
           }
         });
 
@@ -131,7 +126,7 @@ describe('Tests for point controller', () => {
     test('Login manager', async () => {
 
       let res = await request(app)
-        .get(`/api/auth/signin?email=${emailManager}&password=${passwordManager}&mac=${mac}`);
+        .get(`/api/auth/signin?email=${emailManager}&password=${passwordManager}`);
 
       managerToken = res.body.accessToken;
       managerId = res.body.user.id;
@@ -182,22 +177,6 @@ describe('Tests for point controller', () => {
       expect(res.body.message).toMatch('"payload.address" is required!');
     });
 
-    test('Error! Add new point: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .post('/api/point')
-        .set({ 'Authorization': managerToken })
-        .send({
-          "payload": {
-            "name": "Test point",
-            "address": "Тестовый адрес точки"
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
     test('Error! Add new point: property "name" can only be a string', async () => {
       const res = await request(app)
         .post('/api/point')
@@ -205,8 +184,7 @@ describe('Tests for point controller', () => {
         .send({
           "payload": {
             "name": 1,
-            "address": "Тестовый адрес точки",
-            "mac": mac
+            "address": "Тестовый адрес точки"
           }
         });
 
@@ -222,48 +200,13 @@ describe('Tests for point controller', () => {
         .send({
           "payload": {
             "name": "Test point",
-            "address": 1,
-            "mac": mac
+            "address": 1
           }
         });
 
       expect(res.status).toEqual(400);
       expect(res.body.param).toMatch('address');
       expect(res.body.message).toMatch('"payload.address" can only be a string!');
-    });
-
-    test('Error! Add new point: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .post('/api/point')
-        .set({ 'Authorization': managerToken })
-        .send({
-          "payload": {
-            "name": "Test point",
-            "address": "Тестовый адрес точки",
-            "mac": 123
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" can only be a string!');
-    });
-
-    test('Error! Add new point: property "mac" can only be a Mac address string', async () => {
-      const res = await request(app)
-        .post('/api/point')
-        .set({ 'Authorization': managerToken })
-        .send({
-          "payload": {
-            "name": "Test point",
-            "address": "Тестовый адрес точки",
-            "mac": "error"
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
     });
 
     test('Error! Add new point: property "businessId" can only be an integer', async () => {
@@ -274,7 +217,6 @@ describe('Tests for point controller', () => {
           "payload": {
             "name": "Test point",
             "address": "Тестовый адрес точки",
-            "mac": mac,
             "businessId": "error"
           }
         });
@@ -284,23 +226,6 @@ describe('Tests for point controller', () => {
       expect(res.body.message).toMatch('"payload.businessId" can only be an integer!');
     });
 
-
-    test('Error! Add new point: another mac address', async () => {
-      const res = await request(app)
-        .post('/api/point')
-        .set({ 'Authorization': managerToken })
-        .send({
-          "payload": {
-            "name": "Test point",
-            "address": "Тестовый адрес точки",
-            "mac": extraMac
-          }
-        });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Error! Add new point: not enough rights!', async () => {
       const res = await request(app)
         .post('/api/point')
@@ -308,8 +233,7 @@ describe('Tests for point controller', () => {
         .send({
           "payload": {
             "name": "Test point",
-            "address": "Тестовый адрес точки",
-            "mac": mac
+            "address": "Тестовый адрес точки"
           }
         });
 
@@ -324,8 +248,7 @@ describe('Tests for point controller', () => {
         .send({
           "payload": {
             "name": "Test point",
-            "address": "Тестовый адрес точки",
-            "mac": mac
+            "address": "Тестовый адрес точки"
           }
         });
 
@@ -339,12 +262,7 @@ describe('Tests for point controller', () => {
     test('Success! Delete point', async () => {
       const res = await request(app)
         .delete(`/api/point/${pointId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
     });
@@ -357,7 +275,6 @@ describe('Tests for point controller', () => {
           "payload": {
             "name": "Test point",
             "address": "Тестовый адрес точки",
-            "mac": mac,
             "businessId": businessId
           }
         });
@@ -382,48 +299,9 @@ describe('Tests for point controller', () => {
       expect(res.body.message).toMatch('"id" can only be an integer!');
     });
 
-    test('Error! Get point: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .get(`/api/point/${pointId}`)
-        .set({ 'Authorization': managerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
-    test('Error! Get point: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .get(`/api/point/${pointId}?mac=1`)
-        .set({ 'Authorization': managerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Get point: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .get(`/api/point/${pointId}?mac=error`)
-        .set({ 'Authorization': managerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Get point: another mac address', async () => {
-      const res = await request(app)
-        .get(`/api/point/${pointId}?mac=${extraMac}`)
-        .set({ 'Authorization': managerToken });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Success! Get a point by id', async () => {
       const res = await request(app)
-        .get(`/api/point/${pointId}?mac=${mac}`)
+        .get(`/api/point/${pointId}`)
         .set({ 'Authorization': managerToken });
 
       expect(res.status).toEqual(200);
@@ -454,39 +332,9 @@ describe('Tests for point controller', () => {
       expect(res.body.message).toMatch('"payload.value" is required!');
     });
 
-    test('Error! Search pointes: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .get(`/api/point/search?pageNumber=0&value=user`)
-        .set({ 'Authorization': managerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
-    test('Error! Search pointes: property "pageNumber" can only be an integer', async () => {
-      const res = await request(app)
-        .get(`/api/point/search?pageNumber=asd&value=user&mac=${mac}`)
-        .set({ 'Authorization': managerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('pageNumber');
-      expect(res.body.message).toMatch('"payload.pageNumber" can only be an integer!');
-    });
-
-    test('Error! Search pointes: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .get(`/api/point/search?pageNumber=0&value=user&mac=1`)
-        .set({ 'Authorization': managerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
     test('Error! Search pointes: property "pageNumber" cannot be less than zero', async () => {
       const res = await request(app)
-        .get(`/api/point/search?pageNumber=-1&value=Test user&mac=${mac}`)
+        .get(`/api/point/search?pageNumber=-1&value=Test user`)
         .set({ 'Authorization': managerToken });
 
       expect(res.status).toEqual(400);
@@ -494,28 +342,9 @@ describe('Tests for point controller', () => {
       expect(res.body.message).toMatch('"payload.pageNumber" cannot be less than zero!');
     });
 
-    test('Error! Search pointes: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .get(`/api/point/search?pageNumber=0&value=Test user&mac=error`)
-        .set({ 'Authorization': managerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Search pointes: another mac address', async () => {
-      const res = await request(app)
-        .get(`/api/point/search?pageNumber=0&value=Test user&mac=${extraMac}`)
-        .set({ 'Authorization': managerToken });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Error! Search pointes: no records find!', async () => {
       const res = await request(app)
-        .get(`/api/point/search?pageNumber=100000000000000&value=Test user&mac=${mac}`)
+        .get(`/api/point/search?pageNumber=100000000000000&value=Test user`)
         .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(400);
@@ -524,7 +353,7 @@ describe('Tests for point controller', () => {
 
     test('Success! Search pointes', async () => {
       const res = await request(app)
-        .get(`/api/point/search?pageNumber=0&value=Test point&mac=${mac}`)
+        .get(`/api/point/search?pageNumber=0&value=Test point`)
         .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
@@ -545,19 +374,9 @@ describe('Tests for point controller', () => {
       expect(res.body.message).toMatch('"payload.pageNumber" is required!');
     });
 
-    test('Error! Get all pointes: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .get(`/api/point?pageNumber=0`)
-        .set({ 'Authorization': managerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
     test('Error! Get all pointes: property "pageNumber" can only be an integer', async () => {
       const res = await request(app)
-        .get(`/api/point?pageNumber=asd&mac=${mac}`)
+        .get(`/api/point?pageNumber=asd`)
         .set({ 'Authorization': managerToken });
 
       expect(res.status).toEqual(400);
@@ -565,19 +384,9 @@ describe('Tests for point controller', () => {
       expect(res.body.message).toMatch('"payload.pageNumber" can only be an integer!');
     });
 
-    test('Error! Get all pointes: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .get(`/api/point?pageNumber=0&mac=1`)
-        .set({ 'Authorization': managerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
     test('Error! Get all pointes: property "pageNumber" cannot be less than zero', async () => {
       const res = await request(app)
-        .get(`/api/point?pageNumber=-1&mac=${mac}`)
+        .get(`/api/point?pageNumber=-1`)
         .set({ 'Authorization': managerToken });
 
       expect(res.status).toEqual(400);
@@ -585,28 +394,9 @@ describe('Tests for point controller', () => {
       expect(res.body.message).toMatch('"payload.pageNumber" cannot be less than zero!');
     });
 
-    test('Error! Get all pointes: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .get(`/api/point?pageNumber=0&mac=error`)
-        .set({ 'Authorization': managerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Get all pointes: another mac address', async () => {
-      const res = await request(app)
-        .get(`/api/point?pageNumber=0&mac=${extraMac}`)
-        .set({ 'Authorization': managerToken });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Error! Get all pointes: no records find!', async () => {
       const res = await request(app)
-        .get(`/api/point?pageNumber=100000000000000&mac=${mac}`)
+        .get(`/api/point?pageNumber=100000000000000`)
         .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(400);
@@ -615,7 +405,7 @@ describe('Tests for point controller', () => {
 
     test('Success! Get all pointes', async () => {
       const res = await request(app)
-        .get(`/api/point?pageNumber=0&mac=${mac}`)
+        .get(`/api/point?pageNumber=0`)
         .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
@@ -647,56 +437,12 @@ describe('Tests for point controller', () => {
       expect(res.body.message).toMatch('"payload" is required!');
     });
 
-    test('Error! Update point: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .put(`/api/point/${pointId}`)
-        .set({ 'Authorization': managerToken })
-        .send({
-          "payload": {}
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
-    test('Error! Update point: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .put(`/api/point/${pointId}`)
-        .set({ 'Authorization': managerToken })
-        .send({
-          "payload": {
-            "mac": 123
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" can only be a string');
-    });
-
-    test('Error! Update point: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .put(`/api/point/${pointId}`)
-        .set({ 'Authorization': managerToken })
-        .send({
-          "payload": {
-            "mac": "err"
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
     test('Error! Update point: property "name" can only be a string', async () => {
       const res = await request(app)
         .put(`/api/point/${pointId}`)
         .set({ 'Authorization': managerToken })
         .send({
           "payload": {
-            "mac": mac,
             "name": 1,
           }
         });
@@ -712,7 +458,6 @@ describe('Tests for point controller', () => {
         .set({ 'Authorization': managerToken })
         .send({
           "payload": {
-            "mac": mac,
             "address": 1
           }
         });
@@ -722,41 +467,12 @@ describe('Tests for point controller', () => {
       expect(res.body.message).toMatch('"payload.address" can only be a string!');
     });
 
-    test('Error! Update point: another mac address', async () => {
-      const res = await request(app)
-        .put(`/api/point/${pointId}`)
-        .set({ 'Authorization': managerToken })
-        .send({
-          "payload": {
-            "mac": `${extraMac}`
-          }
-        });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
-    test('Error! Update point: not enough rights!', async () => {
-      const res = await request(app)
-        .put(`/api/point/${pointId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
-
-      expect(res.status).toEqual(403);
-      expect(res.body.message).toMatch('Not enough rights!');
-    });
-
     test('Error! Update point: id does not exist!', async () => {
       const res = await request(app)
         .put(`/api/point/-1`)
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
             "address": "Тестовый адрес точки"
           }
         });
@@ -771,7 +487,6 @@ describe('Tests for point controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
             "name": "Test point"
           }
         });
@@ -790,7 +505,6 @@ describe('Tests for point controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
             "address": "Тестовый адрес точки"
           }
         });
@@ -808,7 +522,6 @@ describe('Tests for point controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
             "name": "Test point",
             "address": "Тестовый адрес точки"
           }
@@ -832,83 +545,10 @@ describe('Tests for point controller', () => {
       expect(res.body.message).toMatch('"id" can only be an integer!');
     });
 
-    test('Error! Delete point: no payload object', async () => {
-      const res = await request(app)
-        .delete(`/api/point/${pointId}`)
-        .set({ 'Authorization': managerToken })
-        .send({});
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('payload');
-      expect(res.body.message).toMatch('"payload" is required!');
-    });
-
-    test('Error! Delete point: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .delete(`/api/point/${pointId}`)
-        .set({ 'Authorization': managerToken })
-        .send({
-          "payload": {}
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
-    test('Error! Delete point: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .delete(`/api/point/${pointId}`)
-        .set({ 'Authorization': managerToken })
-        .send({
-          "payload": {
-            "mac": 123
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" can only be a string');
-    });
-
-    test('Error! Delete point: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .delete(`/api/point/${pointId}`)
-        .set({ 'Authorization': managerToken })
-        .send({
-          "payload": {
-            "mac": "err"
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Delete point: another mac address', async () => {
-      const res = await request(app)
-        .delete(`/api/point/${pointId}`)
-        .set({ 'Authorization': managerToken })
-        .send({
-          "payload": {
-            "mac": `${extraMac}`
-          }
-        });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Error! Delete point: not enough rights!', async () => {
       const res = await request(app)
         .delete(`/api/point/${pointId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': customerToken });
 
       expect(res.status).toEqual(403);
       expect(res.body.message).toMatch('Not enough rights!');
@@ -917,12 +557,7 @@ describe('Tests for point controller', () => {
     test('Error! Delete point: id is not exist', async () => {
       const res = await request(app)
         .delete(`/api/point/-1`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(400);
       expect(res.body.message).toMatch('Point with this id does not exist!');
@@ -931,12 +566,7 @@ describe('Tests for point controller', () => {
     test('Success! Delete point', async () => {
       const res = await request(app)
         .delete(`/api/point/${pointId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
       expect(res.body).toHaveProperty('point');
@@ -948,12 +578,7 @@ describe('Tests for point controller', () => {
     test('Success! Delete right', async () => {
       const res = await request(app)
         .delete(`/api/manager/${businessManagerId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
     });
@@ -961,12 +586,7 @@ describe('Tests for point controller', () => {
     test('Success! Delete manager', async () => {
       const res = await request(app)
         .delete(`/api/customer/${managerId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
     });
@@ -974,12 +594,7 @@ describe('Tests for point controller', () => {
     test('Success! Delete customer', async () => {
       const res = await request(app)
         .delete(`/api/customer/${customerId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
     });
@@ -987,12 +602,7 @@ describe('Tests for point controller', () => {
     test('Success! Delete business', async () => {
       const res = await request(app)
         .delete(`/api/business/${businessId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
     });

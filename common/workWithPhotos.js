@@ -2,6 +2,7 @@ const config = require('../config');
 
 const fs = require('fs');
 const cloudinary = require('cloudinary');
+const _ = require('lodash');
 
 cloudinary.config({
   cloud_name: config.imageCloudName,
@@ -17,6 +18,10 @@ const pathConvector = (path) => {
 module.exports = {
   checkPuthFunc: async ({ paths }) => {
     let check = true;
+
+    if (!_.isArray(paths)) {
+      return false;
+    }
 
     for (let i = 0; i < paths.length; i++) {
       const correctPath = pathConvector(paths[i]);
@@ -38,10 +43,17 @@ module.exports = {
     for (let i = 0; i < base64.length; i++) {
       const response = await cloudinary.v2.uploader.upload(base64[i].base64Img, (error, result) => {
         if (error) {
-          throw { message: 'Error' }
+          return {
+            error: true,
+            message: 'Invalid file!'
+          }
         }
         return result;
       });
+
+      if (response.error === true) {
+        throw { message: response.message }
+      }
 
       path.push(response.url);
     }
@@ -50,6 +62,7 @@ module.exports = {
   },
 
   deletePhotoFunc: async ({ paths }) => {
+
     for (let i = 0; i < paths.length; i++) {
       const correctPath = pathConvector(paths[i]);
 

@@ -55,7 +55,9 @@ module.exports = ({ db }) => ({
   search: async (pageStart, value) => {
     return db.query(
       `SELECT *, (
-        SELECT COUNT(*) FROM feedback
+        SELECT COUNT(*) FILTER (WHERE p.name @@ '${value}')
+        FROM feedback as f
+        JOIN point as p ON p.idpoint = f.idpoint
       ) as count_rows
       FROM feedback as f
       JOIN customer as c ON c.idcustomer = f.idcustomer

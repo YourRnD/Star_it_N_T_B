@@ -24,9 +24,9 @@ module.exports = ({ router, actions, db, validators }) => {
       try {
         const reqData = managerValidate.getAll(req.query);
 
-        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+        const userData = getInfoOutToken(req.headers.authorization);
 
-        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+        if (!userData?.rightId) {
           throw {
             status: HttpStatus.UNAUTHORIZED,
             body: {
@@ -96,9 +96,9 @@ module.exports = ({ router, actions, db, validators }) => {
       try {
         const reqData = managerValidate.search(req.query);
 
-        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+        const userData = getInfoOutToken(req.headers.authorization);
 
-        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+        if (!userData?.rightId) {
           throw {
             status: HttpStatus.UNAUTHORIZED,
             body: {
@@ -166,11 +166,11 @@ module.exports = ({ router, actions, db, validators }) => {
     (req, res) => {
 
       try {
-        const reqData = managerValidate.get(req.params.id, req.query);
+        managerValidate.get(req.params.id);
 
-        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+        const userData = getInfoOutToken(req.headers.authorization);
 
-        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+        if (!userData?.rightId) {
           throw {
             status: HttpStatus.UNAUTHORIZED,
             body: {
@@ -236,9 +236,9 @@ module.exports = ({ router, actions, db, validators }) => {
       try {
         const reqData = managerValidate.add(req.body.payload);
 
-        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+        const userData = getInfoOutToken(req.headers.authorization);
 
-        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+        if (!userData?.rightId) {
           throw {
             status: HttpStatus.UNAUTHORIZED,
             body: {
@@ -297,11 +297,11 @@ module.exports = ({ router, actions, db, validators }) => {
     (req, res) => {
 
       try {
-        const reqData = managerValidate.delete(req.params.id, req.body.payload);
+        managerValidate.delete(req.params.id);
 
-        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+        const userData = getInfoOutToken(req.headers.authorization);
 
-        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+        if (!userData?.rightId) {
           throw {
             status: HttpStatus.UNAUTHORIZED,
             body: {
@@ -382,9 +382,9 @@ module.exports = ({ router, actions, db, validators }) => {
       try {
         const reqData = managerValidate.update(req.params.id, req.body.payload);
 
-        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+        const userData = getInfoOutToken(req.headers.authorization);
 
-        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+        if (!userData?.rightId) {
           throw {
             status: HttpStatus.UNAUTHORIZED,
             body: {

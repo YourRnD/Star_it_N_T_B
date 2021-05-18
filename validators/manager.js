@@ -7,25 +7,12 @@ const managerFields = [
   'idCustomer',
   'pageNumber',
   'value',
-  'mac'
 ];
 
 class ManagerValidate {
   add(payload) {
     if (!payload) {
       throw ValidationError('payload', '"payload" is required!');
-    }
-
-    if (!payload.mac) {
-      throw ValidationError('mac', '"payload.mac" is required!');
-    }
-
-    if (!_.isString(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" can only be a string!');
-    }
-
-    if (!validator.isMACAddress(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" is not correctly!');
     }
 
     if (!payload.idCustomer) {
@@ -47,28 +34,10 @@ class ManagerValidate {
     return _.pick(payload, managerFields);
   }
 
-  delete(_id, payload) {
+  delete(_id) {
     if (!validator.isInt(`${_id}`)) {
       throw ValidationError('id', '"id" can only be an integer!');
     }
-
-    if (!payload) {
-      throw ValidationError('payload', '"payload" is required!');
-    }
-
-    if (!payload.mac) {
-      throw ValidationError('mac', '"payload.mac" is required!');
-    }
-
-    if (!_.isString(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" can only be a string!');
-    }
-
-    if (!validator.isMACAddress(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" is not correctly!');
-    }
-
-    return _.pick(payload, managerFields);
   }
 
   update(_id, payload) {
@@ -78,18 +47,6 @@ class ManagerValidate {
 
     if (!payload) {
       throw ValidationError('payload', '"payload" is required!');
-    }
-
-    if (!payload.mac) {
-      throw ValidationError('mac', '"payload.mac" is required!');
-    }
-
-    if (!_.isString(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" can only be a string!');
-    }
-
-    if (!validator.isMACAddress(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" is not correctly!');
     }
 
     if (payload.idBusiness) {
@@ -120,51 +77,21 @@ class ManagerValidate {
       throw ValidationError('pageNumber', '"payload.pageNumber" is required!');
     }
 
-    if (!payload.mac) {
-      throw ValidationError('mac', '"payload.mac" is required!');
-    }
-
     if (!validator.isInt(`${payload.pageNumber}`)) {
       throw ValidationError('pageNumber', '"payload.pageNumber" can only be an integer!');
-    }
-
-    if (!_.isString(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" can only be a string!');
     }
 
     if (payload.pageNumber < 0) {
       throw ValidationError('pageNumber', '"payload.pageNumber" cannot be less than zero!');
     }
 
-    if (!validator.isMACAddress(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" is not correctly!');
-    }
-
     return _.pick(payload, managerFields);
   }
 
-  get(_id, payload) {
+  get(_id) {
     if (!validator.isInt(`${_id}`)) {
       throw ValidationError('id', '"id" can only be an integer!');
     }
-
-    if (!payload) {
-      throw ValidationError('payload', '"payload" is required!');
-    }
-
-    if (!payload.mac) {
-      throw ValidationError('mac', '"payload.mac" is required!');
-    }
-
-    if (!_.isString(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" can only be a string!');
-    }
-
-    if (!validator.isMACAddress(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" is not correctly!');
-    }
-
-    return _.pick(payload, managerFields);
   }
 
   search(payload) {
@@ -180,24 +107,12 @@ class ManagerValidate {
       throw ValidationError('value', '"payload.value" is required!');
     }
 
-    if (!payload.mac) {
-      throw ValidationError('mac', '"payload.mac" is required!');
-    }
-
     if (!validator.isInt(`${payload.pageNumber}`)) {
       throw ValidationError('pageNumber', '"payload.pageNumber" can only be an integer!');
     }
 
-    if (!_.isString(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" can only be a string!');
-    }
-
     if (payload.pageNumber < 0) {
       throw ValidationError('pageNumber', '"payload.pageNumber" cannot be less than zero!');
-    }
-
-    if (!validator.isMACAddress(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" is not correctly!');
     }
 
     return _.pick(payload, managerFields);

@@ -96,14 +96,12 @@ module.exports = ({ router, actions, db, validators }) => {
               const accessToken = jwt.sign({
                 userId: row.idcustomer,
                 rightId: row.idright,
-                mac: reqData.mac,
               },
                 config.jwt, {
                 expiresIn: '1h'
               });
               const refreshToken = jwt.sign({
                 userId: row.idcustomer,
-                mac: reqData.mac,
               },
                 config.jwt, {
                 expiresIn: 60 * 60 * 24
@@ -166,11 +164,11 @@ module.exports = ({ router, actions, db, validators }) => {
     (req, res) => {
 
       try {
-        const reqData = authValidate.refresh(req.query);
+        authValidate.refresh(req.query);
 
-        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+        const userData = getInfoOutToken(req.headers.authorization);
 
-        if (userData?.status && userData?.status === 401) {
+        if (!userData?.userId) {
           throw {
             status: HttpStatus.UNAUTHORIZED,
             body: {
@@ -193,14 +191,12 @@ module.exports = ({ router, actions, db, validators }) => {
             const accessToken = jwt.sign({
               userId: result.rows[0].idcustomer,
               rightId: result.rows[0].idright,
-              mac: reqData.mac,
             },
               config.jwt, {
               expiresIn: '2h'
             });
             const refreshToken = jwt.sign({
               userId: result.rows[0].idcustomer,
-              mac: reqData.mac,
             },
               config.jwt, {
               expiresIn: 60 * 60 * 24
@@ -237,11 +233,9 @@ module.exports = ({ router, actions, db, validators }) => {
     }),
     (req, res) => {
       try {
-        const reqData = authValidate.me(req.query);
+        userData = getInfoOutToken(req.headers.authorization);
 
-        userData = getInfoOutToken(req.headers.authorization, reqData.mac);
-
-        if (!userData?.userId || (userData?.status && userData?.status === 401)) {
+        if (!userData?.userId) {
           throw {
             status: HttpStatus.UNAUTHORIZED,
             body: {

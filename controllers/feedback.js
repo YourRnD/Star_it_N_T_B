@@ -28,9 +28,9 @@ module.exports = ({ router, actions, db, validators }) => {
       try {
         const reqData = feedbackValidate.getAll(req.query);
 
-        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+        const userData = getInfoOutToken(req.headers.authorization);
 
-        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+        if (!userData?.rightId) {
           throw {
             status: HttpStatus.UNAUTHORIZED,
             body: {
@@ -101,9 +101,9 @@ module.exports = ({ router, actions, db, validators }) => {
       try {
         const reqData = feedbackValidate.search(req.query);
 
-        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+        const userData = getInfoOutToken(req.headers.authorization);
 
-        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+        if (!userData?.rightId) {
           throw {
             status: HttpStatus.UNAUTHORIZED,
             body: {
@@ -193,11 +193,11 @@ module.exports = ({ router, actions, db, validators }) => {
     (req, res) => {
 
       try {
-        const reqData = feedbackValidate.get(req.params.id, req.query);
+        feedbackValidate.get(req.params.id);
 
-        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+        const userData = getInfoOutToken(req.headers.authorization);
 
-        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+        if (!userData?.rightId) {
           throw {
             status: HttpStatus.UNAUTHORIZED,
             body: {
@@ -291,12 +291,11 @@ module.exports = ({ router, actions, db, validators }) => {
     async (req, res) => {
 
       try {
-
         const reqData = feedbackValidate.add(req.body.payload);
 
-        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+        const userData = getInfoOutToken(req.headers.authorization);
 
-        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+        if (!userData?.rightId) {
           throw {
             status: HttpStatus.UNAUTHORIZED,
             body: {
@@ -305,7 +304,7 @@ module.exports = ({ router, actions, db, validators }) => {
           }
         }
 
-        let uploadPath = 'false';
+        let uploadPath = [];
 
         if (req.body.payload?.image) {
           uploadPath = await photo.uploadPhotoFunc({
@@ -327,32 +326,31 @@ module.exports = ({ router, actions, db, validators }) => {
               idCustomer: userData.userId,
               date: new Date(),
               path: uploadPath,
-            })
-              .then(result => {
-                response.status(
-                  HttpStatus.OK,
-                  {
-                    message: 'Review added successfully!',
-                    feedback: {
-                      id: result.rows[0].idfeedback,
-                      date: result.rows[0].date,
-                      notes: result.rows[0].notes,
-                      rating: result.rows[0].rating,
-                      path: result.rows[0].path,
-                      user: {
-                        id: result.rows[0].idcustomer,
-                        name: result.rows[0].name,
-                        email: result.rows[0].email
-                      },
-                      point: {
-                        id: result.rows[0].idpoint,
-                        name: result.rows[0].name,
-                        addres: result.rows[0].address
-                      }
+            }).then(result => {
+              response.status(
+                HttpStatus.OK,
+                {
+                  message: 'Review added successfully!',
+                  feedback: {
+                    id: result.rows[0].idfeedback,
+                    date: result.rows[0].date,
+                    notes: result.rows[0].notes,
+                    rating: result.rows[0].rating,
+                    path: result.rows[0].path,
+                    user: {
+                      id: result.rows[0].idcustomer,
+                      name: result.rows[0].name,
+                      email: result.rows[0].email
+                    },
+                    point: {
+                      id: result.rows[0].idpoint,
+                      name: result.rows[0].name,
+                      addres: result.rows[0].address
                     }
-                  },
-                  res);
-              })
+                  }
+                },
+                res);
+            })
               .catch(e => {
                 response.status(
                   e?.status || HttpStatus.BAD_REQUEST,
@@ -391,11 +389,11 @@ module.exports = ({ router, actions, db, validators }) => {
 
       try {
 
-        const reqData = feedbackValidate.delete(req.params.id, req.body.payload);
+        feedbackValidate.delete(req.params.id);
 
-        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+        const userData = getInfoOutToken(req.headers.authorization);
 
-        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+        if (!userData?.rightId) {
           throw {
             status: HttpStatus.UNAUTHORIZED,
             body: {
@@ -426,7 +424,7 @@ module.exports = ({ router, actions, db, validators }) => {
 
             if (
               result.rows[0].path != 'false'
-              && !photo.checkPuthFunc({ path: result.rows[0].path })
+              && !photo.checkPuthFunc({ paths: result.rows[0].path })
             ) {
               throw {
                 message: "The path is incorrect"
@@ -436,7 +434,7 @@ module.exports = ({ router, actions, db, validators }) => {
             feedback.delete(req.params.id)
               .then(result => {
                 if (result.rows[0].path != 'false') {
-                  photo.deletePhotoFunc({ path: result.rows[0].path });
+                  photo.deletePhotoFunc({ paths: result.rows[0].path });
                 }
                 response.status(
                   HttpStatus.OK,
@@ -502,9 +500,9 @@ module.exports = ({ router, actions, db, validators }) => {
       try {
         const reqData = feedbackValidate.update(req.params.id, req.body.payload);
 
-        const userData = getInfoOutToken(req.headers.authorization, reqData.mac);
+        const userData = getInfoOutToken(req.headers.authorization);
 
-        if ((userData?.status && userData?.status === 401) || !userData?.rightId) {
+        if (!userData?.rightId) {
           throw {
             status: HttpStatus.UNAUTHORIZED,
             body: {
@@ -535,9 +533,11 @@ module.exports = ({ router, actions, db, validators }) => {
 
             const oldPath = result.rows[0].path;
 
+            console.log(oldPath)
+
             if (
-              oldPath != 'false'
-              && !(await photo.checkPuthFunc({ path: oldPath }))
+              oldPath != []
+              && !(await photo.checkPuthFunc({ paths: oldPath }))
             ) {
               throw {
                 message: "The path is incorrect"
@@ -580,8 +580,8 @@ module.exports = ({ router, actions, db, validators }) => {
               date: new Date()
             })
               .then(result => {
-                if (photo.checkPuthFunc({ path: oldPath })) {
-                  photo.deletePhotoFunc({ path: oldPath });
+                if (photo.checkPuthFunc({ paths: oldPath })) {
+                  photo.deletePhotoFunc({ paths: oldPath });
                 }
                 response.status(
                   HttpStatus.OK,

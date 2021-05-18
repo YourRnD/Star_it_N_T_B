@@ -3,8 +3,6 @@ const app = require('../../app');
 
 let adminToken;
 let customerToken;
-const mac = 'D0:AA:E5:E1:8E:CE';
-const extraMac = '4D:56:DD:21:8B:77';
 const emailCustomer = 'test.manager@gmail.com';
 const passwordCustomer = 'Qwerty_322';
 const emailAdmin = '28filosof28@gmail.com';
@@ -38,7 +36,7 @@ describe('Tests for manager controller', () => {
     test('Login customer', async () => {
 
       let res = await request(app)
-        .get(`/api/auth/signin?email=${emailCustomer}&password=${passwordCustomer}&mac=${mac}`);
+        .get(`/api/auth/signin?email=${emailCustomer}&password=${passwordCustomer}`);
 
       expect(res.status).toEqual(200);
 
@@ -49,7 +47,7 @@ describe('Tests for manager controller', () => {
     test('Login admin', async () => {
 
       let res = await request(app)
-        .get(`/api/auth/signin?email=${emailAdmin}&password=${passwordAdmin}&mac=${mac}`);
+        .get(`/api/auth/signin?email=${emailAdmin}&password=${passwordAdmin}`);
 
       expect(res.status).toEqual(200);
 
@@ -64,8 +62,7 @@ describe('Tests for manager controller', () => {
         .send({
           "payload": {
             "name": "Test business",
-            "image": successImageForBusiness,
-            "mac": mac
+            "image": [successImageForBusiness]
           }
         });
 
@@ -81,7 +78,6 @@ describe('Tests for manager controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
             "status": 3
           }
         });
@@ -104,26 +100,12 @@ describe('Tests for manager controller', () => {
       expect(res.body.message).toMatch('"payload" is required!');
     });
 
-    test('Error! Add new manager: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .post('/api/manager')
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {}
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
     test('Error! Add new manager: payload has no "idCustomer" property', async () => {
       const res = await request(app)
         .post('/api/manager')
         .set({ 'Authorization': customerToken })
         .send({
           "payload": {
-            "mac": mac,
           }
         });
 
@@ -138,7 +120,6 @@ describe('Tests for manager controller', () => {
         .set({ 'Authorization': customerToken })
         .send({
           "payload": {
-            "mac": mac,
             "idCustomer": customerId,
           }
         });
@@ -155,8 +136,7 @@ describe('Tests for manager controller', () => {
         .send({
           "payload": {
             "idCustomer": 'err',
-            "idBusiness": businessId,
-            "mac": mac
+            "idBusiness": businessId
           }
         });
 
@@ -172,64 +152,13 @@ describe('Tests for manager controller', () => {
         .send({
           "payload": {
             "idCustomer": customerId,
-            "idBusiness": 'err',
-            "mac": mac
+            "idBusiness": 'err'
           }
         });
 
       expect(res.status).toEqual(400);
       expect(res.body.param).toMatch('idBusiness');
       expect(res.body.message).toMatch('"payload.idBusiness" can only be an integer!');
-    });
-
-    test('Error! Add new manager: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .post('/api/manager')
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "idCustomer": customerId,
-            "idBusiness": businessId,
-            "mac": 123
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" can only be a string!');
-    });
-
-    test('Error! Add new manager: property "mac" can only be a Mac address string', async () => {
-      const res = await request(app)
-        .post('/api/manager')
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "idCustomer": customerId,
-            "idBusiness": businessId,
-            "mac": "error"
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Add new manager: another mac address', async () => {
-      const res = await request(app)
-        .post('/api/manager')
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "idCustomer": customerId,
-            "idBusiness": businessId,
-            "mac": extraMac
-          }
-        });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
     });
 
     test('Error! Add new manager: not enough rights!', async () => {
@@ -239,8 +168,7 @@ describe('Tests for manager controller', () => {
         .send({
           "payload": {
             "idCustomer": customerId,
-            "idBusiness": businessId,
-            "mac": mac
+            "idBusiness": businessId
           }
         });
 
@@ -256,8 +184,7 @@ describe('Tests for manager controller', () => {
         .send({
           "payload": {
             "idCustomer": customerId,
-            "idBusiness": businessId,
-            "mac": mac
+            "idBusiness": businessId
           }
         });
 
@@ -281,48 +208,9 @@ describe('Tests for manager controller', () => {
       expect(res.body.message).toMatch('"id" can only be an integer!');
     });
 
-    test('Error! Get manager: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .get(`/api/manager/${managerId}`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
-    test('Error! Get manager: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .get(`/api/manager/${managerId}?mac=1`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Get manager: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .get(`/api/manager/${managerId}?mac=error`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Get manager: another mac address', async () => {
-      const res = await request(app)
-        .get(`/api/manager/${managerId}?mac=${extraMac}`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Success! Get a manager by id', async () => {
       const res = await request(app)
-        .get(`/api/manager/${managerId}?mac=${mac}`)
+        .get(`/api/manager/${managerId}`)
         .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
@@ -353,19 +241,9 @@ describe('Tests for manager controller', () => {
       expect(res.body.message).toMatch('"payload.value" is required!');
     });
 
-    test('Error! Search manageres: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .get(`/api/manager/search?pageNumber=0&value=user`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
     test('Error! Search manageres: property "pageNumber" can only be an integer', async () => {
       const res = await request(app)
-        .get(`/api/manager/search?pageNumber=asd&value=user&mac=${mac}`)
+        .get(`/api/manager/search?pageNumber=asd&value=user`)
         .set({ 'Authorization': customerToken });
 
       expect(res.status).toEqual(400);
@@ -373,19 +251,9 @@ describe('Tests for manager controller', () => {
       expect(res.body.message).toMatch('"payload.pageNumber" can only be an integer!');
     });
 
-    test('Error! Search manageres: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .get(`/api/manager/search?pageNumber=0&value=user&mac=1`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
     test('Error! Search manageres: property "pageNumber" cannot be less than zero', async () => {
       const res = await request(app)
-        .get(`/api/manager/search?pageNumber=-1&value=Test user&mac=${mac}`)
+        .get(`/api/manager/search?pageNumber=-1&value=Test user`)
         .set({ 'Authorization': customerToken });
 
       expect(res.status).toEqual(400);
@@ -393,28 +261,9 @@ describe('Tests for manager controller', () => {
       expect(res.body.message).toMatch('"payload.pageNumber" cannot be less than zero!');
     });
 
-    test('Error! Search manageres: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .get(`/api/manager/search?pageNumber=0&value=Test user&mac=error`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Search manageres: another mac address', async () => {
-      const res = await request(app)
-        .get(`/api/manager/search?pageNumber=0&value=Test user&mac=${extraMac}`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Error! Search manageres: no records find!', async () => {
       const res = await request(app)
-        .get(`/api/manager/search?pageNumber=100000000000000&value=Test user&mac=${mac}`)
+        .get(`/api/manager/search?pageNumber=100000000000000&value=Test user`)
         .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(400);
@@ -423,7 +272,7 @@ describe('Tests for manager controller', () => {
 
     test('Success! Search manageres', async () => {
       const res = await request(app)
-        .get(`/api/manager/search?pageNumber=0&value=Test user&mac=${mac}`)
+        .get(`/api/manager/search?pageNumber=0&value=Test user`)
         .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
@@ -444,19 +293,9 @@ describe('Tests for manager controller', () => {
       expect(res.body.message).toMatch('"payload.pageNumber" is required!');
     });
 
-    test('Error! Get all manageres: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .get(`/api/manager?pageNumber=0`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
     test('Error! Get all manageres: property "pageNumber" can only be an integer', async () => {
       const res = await request(app)
-        .get(`/api/manager?pageNumber=asd&mac=${mac}`)
+        .get(`/api/manager?pageNumber=asd`)
         .set({ 'Authorization': customerToken });
 
       expect(res.status).toEqual(400);
@@ -464,19 +303,9 @@ describe('Tests for manager controller', () => {
       expect(res.body.message).toMatch('"payload.pageNumber" can only be an integer!');
     });
 
-    test('Error! Get all manageres: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .get(`/api/manager?pageNumber=0&mac=1`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
     test('Error! Get all manageres: property "pageNumber" cannot be less than zero', async () => {
       const res = await request(app)
-        .get(`/api/manager?pageNumber=-1&mac=${mac}`)
+        .get(`/api/manager?pageNumber=-1`)
         .set({ 'Authorization': customerToken });
 
       expect(res.status).toEqual(400);
@@ -484,28 +313,9 @@ describe('Tests for manager controller', () => {
       expect(res.body.message).toMatch('"payload.pageNumber" cannot be less than zero!');
     });
 
-    test('Error! Get all manageres: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .get(`/api/manager?pageNumber=0&mac=error`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Get all manageres: another mac address', async () => {
-      const res = await request(app)
-        .get(`/api/manager?pageNumber=0&mac=${extraMac}`)
-        .set({ 'Authorization': customerToken });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Error! Get all manageres: no records find!', async () => {
       const res = await request(app)
-        .get(`/api/manager?pageNumber=100000000000000&mac=${mac}`)
+        .get(`/api/manager?pageNumber=100000000000000`)
         .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(400);
@@ -514,7 +324,7 @@ describe('Tests for manager controller', () => {
 
     test('Success! Get all manageres', async () => {
       const res = await request(app)
-        .get(`/api/manager?pageNumber=0&mac=${mac}`)
+        .get(`/api/manager?pageNumber=0`)
         .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
@@ -545,56 +355,12 @@ describe('Tests for manager controller', () => {
       expect(res.body.message).toMatch('"payload" is required!');
     });
 
-    test('Error! Update manager: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .put(`/api/manager/${managerId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {}
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
-    test('Error! Update manager: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .put(`/api/manager/${managerId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "mac": 123
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" can only be a string');
-    });
-
-    test('Error! Update manager: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .put(`/api/manager/${managerId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "mac": "err"
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
     test('Error! Update manager: property "idCustomer" can only be an integer', async () => {
       const res = await request(app)
         .put(`/api/manager/${managerId}`)
         .set({ 'Authorization': customerToken })
         .send({
           "payload": {
-            "mac": mac,
             "idCustomer": 'error',
           }
         });
@@ -610,7 +376,6 @@ describe('Tests for manager controller', () => {
         .set({ 'Authorization': customerToken })
         .send({
           "payload": {
-            "mac": mac,
             "idBusiness": 'error',
           }
         });
@@ -620,29 +385,15 @@ describe('Tests for manager controller', () => {
       expect(res.body.message).toMatch('"payload.idBusiness" can only be an integer!');
     });
 
-    test('Error! Update manager: another mac address', async () => {
-      const res = await request(app)
-        .put(`/api/manager/${managerId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "mac": `${extraMac}`
-          }
-        });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Error! Update manager: not enough rights!', async () => {
       const res = await request(app)
         .put(`/api/manager/${managerId}`)
         .set({ 'Authorization': customerToken })
         .send({
           "payload": {
-            "mac": `${mac}`
+            "idBusiness": businessId,
           }
-        });
+        });;
 
       expect(res.status).toEqual(403);
       expect(res.body.message).toMatch('Not enough rights!');
@@ -654,9 +405,9 @@ describe('Tests for manager controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
+            "idBusiness": businessId,
           }
-        });
+        });;
 
       expect(res.status).toEqual(400);
       expect(res.body.message).toMatch('Manager with this id does not exist!');
@@ -668,7 +419,6 @@ describe('Tests for manager controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
             "idBusiness": businessId,
           }
         });
@@ -687,7 +437,6 @@ describe('Tests for manager controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
             "idCustomer": customerId,
           }
         });
@@ -705,7 +454,6 @@ describe('Tests for manager controller', () => {
         .set({ 'Authorization': adminToken })
         .send({
           "payload": {
-            "mac": mac,
             "idCustomer": customerId,
             "idBusiness": businessId,
           }
@@ -729,83 +477,10 @@ describe('Tests for manager controller', () => {
       expect(res.body.message).toMatch('"id" can only be an integer!');
     });
 
-    test('Error! Delete manager: no payload object', async () => {
-      const res = await request(app)
-        .delete(`/api/manager/${managerId}`)
-        .set({ 'Authorization': adminToken })
-        .send({});
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('payload');
-      expect(res.body.message).toMatch('"payload" is required!');
-    });
-
-    test('Error! Delete manager: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .delete(`/api/manager/${managerId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {}
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
-    test('Error! Delete manager: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .delete(`/api/manager/${managerId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": 123
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" can only be a string');
-    });
-
-    test('Error! Delete manager: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .delete(`/api/manager/${managerId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": "err"
-          }
-        });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Delete manager: another mac address', async () => {
-      const res = await request(app)
-        .delete(`/api/manager/${managerId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${extraMac}`
-          }
-        });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Error! Delete manager: not enough rights!', async () => {
       const res = await request(app)
         .delete(`/api/manager/${managerId}`)
-        .set({ 'Authorization': customerToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': customerToken });
 
       expect(res.status).toEqual(403);
       expect(res.body.message).toMatch('Not enough rights!');
@@ -814,12 +489,7 @@ describe('Tests for manager controller', () => {
     test('Error! Delete manager: id is not exist', async () => {
       const res = await request(app)
         .delete(`/api/manager/-1`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(400);
       expect(res.body.message).toMatch('Manager with this id does not exist!');
@@ -828,12 +498,7 @@ describe('Tests for manager controller', () => {
     test('Success! Delete manager', async () => {
       const res = await request(app)
         .delete(`/api/manager/${managerId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
       expect(res.body).toHaveProperty('manager');
@@ -846,12 +511,7 @@ describe('Tests for manager controller', () => {
     test('Success! Delete customer', async () => {
       const res = await request(app)
         .delete(`/api/customer/${customerId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
     });
@@ -859,12 +519,7 @@ describe('Tests for manager controller', () => {
     test('Success! Delete business', async () => {
       const res = await request(app)
         .delete(`/api/business/${businessId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
     });

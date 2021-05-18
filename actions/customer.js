@@ -53,7 +53,7 @@ module.exports = ({ db }) => ({
   search: (pageStart, value) => {
     return db.query(
       `SELECT *, (
-        SELECT COUNT(*) FROM customer
+        SELECT COUNT(*) FILTER (WHERE name @@ '${value}') FROM customer
       ) as count_rows FROM customer
       WHERE name @@ '${value}'
       LIMIT 10 OFFSET ${pageStart}`

@@ -4,8 +4,6 @@ const app = require('../../app');
 let access_token;
 let refresh_token;
 let adminToken;
-const mac = 'D0:AA:E5:E1:8E:CE';
-const extraMac = '4D:56:DD:21:8B:77';
 const email = 'test.auth@gmail.com';
 const password = 'Qwerty_322';
 const emailAdmin = '28filosof28@gmail.com';
@@ -19,7 +17,7 @@ describe('Tests for manager controller', () => {
     test('Login admin user', async () => {
 
       let res = await request(app)
-        .get(`/api/auth/signin?email=${emailAdmin}&password=${passwordAdmin}&mac=${mac}`);
+        .get(`/api/auth/signin?email=${emailAdmin}&password=${passwordAdmin}`);
 
       adminToken = res.body.accessToken;
 
@@ -180,54 +178,27 @@ describe('Tests for manager controller', () => {
       expect(res.body.message).toMatch('"payload.password" is required!');
     });
 
-    test('Error! Login: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .get(`/api/auth/signin?email=${email}&password=${password}`);
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
     test('Error! Login: property "email" is not mail', async () => {
       const res = await request(app)
-        .get(`/api/auth/signin?email=error&password=${password}&mac=${mac}`);
+        .get(`/api/auth/signin?email=error&password=${password}`);
 
       expect(res.status).toEqual(400);
       expect(res.body.param).toMatch('email');
       expect(res.body.message).toMatch('"payload.email" is not correctly!');
     });
 
-    test('Error! Login: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .get(`/api/auth/signin?email=${email}&password=${password}&mac=1`);
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
     test('Error! Login: password is not complex enough', async () => {
       const res = await request(app)
-        .get(`/api/auth/signin?email=${email}&password=1234567&mac=${mac}`);
+        .get(`/api/auth/signin?email=${email}&password=1234567`);
 
       expect(res.status).toEqual(400);
       expect(res.body.param).toMatch('password');
       expect(res.body.message).toMatch('"payload.password" is not correctly!');
     });
 
-    test('Error! Login: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .get(`/api/auth/signin?email=${email}&password=${password}&mac=error`);
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
     test('Login failed: email is not correctly', async () => {
       const res = await request(app)
-        .get(`/api/auth/signin?email=test.err@gmail.com&password=${password}&mac=${mac}`);
+        .get(`/api/auth/signin?email=test.err@gmail.com&password=${password}`);
 
       expect(res.status).toEqual(400);
       expect(res.body.message).toMatch('Email or password is incorrect!');
@@ -235,7 +206,7 @@ describe('Tests for manager controller', () => {
 
     test('Login failed: password is not correctly', async () => {
       const res = await request(app)
-        .get(`/api/auth/signin?email=${email}&password=Qwerty_12345err&mac=${mac}`);
+        .get(`/api/auth/signin?email=${email}&password=Qwerty_12345err`);
 
       expect(res.status).toEqual(400);
       expect(res.body.message).toMatch('Email or password is incorrect!');
@@ -243,7 +214,7 @@ describe('Tests for manager controller', () => {
 
     test('Success! Login', async () => {
       const res = await request(app)
-        .get(`/api/auth/signin?email=${email}&password=${password}&mac=${mac}`);
+        .get(`/api/auth/signin?email=${email}&password=${password}`);
 
       expect(res.status).toEqual(200);
       expect(res.body.message).toMatch('User find!');
@@ -260,48 +231,9 @@ describe('Tests for manager controller', () => {
 
 
   describe('GET api/auth/refresh', () => {
-    test('Error! Refresh token: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .get(`/api/auth/refresh`)
-        .set({ 'Authorization': refresh_token });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
-    test('Error! Refresh token: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .get(`/api/auth/refresh?mac=1`)
-        .set({ 'Authorization': refresh_token });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Refresh token: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .get(`/api/auth/refresh?mac=error`)
-        .set({ 'Authorization': refresh_token });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Refresh token: another mac address', async () => {
-      const res = await request(app)
-        .get(`/api/auth/refresh?mac=${extraMac}`)
-        .set({ 'Authorization': refresh_token });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Success! Refresh token', async () => {
       const res = await request(app)
-        .get(`/api/auth/refresh?mac=${mac}`)
+        .get(`/api/auth/refresh`)
         .set({ 'Authorization': refresh_token });
 
       expect(res.status).toEqual(200);
@@ -316,48 +248,9 @@ describe('Tests for manager controller', () => {
 
 
   describe('GET api/auth/me', () => {
-    test('Error! Check user: payload has no "mac" property', async () => {
-      const res = await request(app)
-        .get(`/api/auth/me`)
-        .set({ 'Authorization': access_token });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is required!');
-    });
-
-    test('Error! Check user: property "mac" can only be a string', async () => {
-      const res = await request(app)
-        .get(`/api/auth/me?mac=1`)
-        .set({ 'Authorization': access_token });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Check user: property "mac" is not be a mac address', async () => {
-      const res = await request(app)
-        .get(`/api/auth/me?mac=error`)
-        .set({ 'Authorization': access_token });
-
-      expect(res.status).toEqual(400);
-      expect(res.body.param).toMatch('mac');
-      expect(res.body.message).toMatch('"payload.mac" is not correctly!');
-    });
-
-    test('Error! Check user: another mac address', async () => {
-      const res = await request(app)
-        .get(`/api/auth/me?mac=${extraMac}`)
-        .set({ 'Authorization': access_token });
-
-      expect(res.status).toEqual(401);
-      expect(res.body.message).toMatch('Fatal error, please log in again');
-    });
-
     test('Success! Check user', async () => {
       const res = await request(app)
-        .get(`/api/auth/me?mac=${mac}`)
+        .get(`/api/auth/me`)
         .set({ 'Authorization': access_token });
 
       expect(res.status).toEqual(200);
@@ -372,12 +265,7 @@ describe('Tests for manager controller', () => {
 
       const res = await request(app)
         .delete(`/api/customer/${customerId}`)
-        .set({ 'Authorization': adminToken })
-        .send({
-          "payload": {
-            "mac": `${mac}`
-          }
-        });
+        .set({ 'Authorization': adminToken });
 
       expect(res.status).toEqual(200);
       expect(res.body.message).toMatch('User deleted successfully!');

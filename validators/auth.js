@@ -6,7 +6,6 @@ const authFields = [
   'name',
   'email',
   'password',
-  'mac',
 ];
 
 class AuthValidate {
@@ -55,24 +54,12 @@ class AuthValidate {
       throw ValidationError('password', '"payload.password" is required!');
     }
 
-    if (!payload.mac) {
-      throw ValidationError('mac', '"payload.mac" is required!');
-    }
-
     if (!validator.isEmail(payload.email)) {
       throw ValidationError('email', '"payload.email" is not correctly!');
     }
 
-    if (!_.isString(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" can only be a string!');
-    }
-
     if (!validator.isStrongPassword(payload.password)) {
       throw ValidationError('password', '"payload.password" is not correctly!');
-    }
-
-    if (!validator.isMACAddress(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" is not correctly!');
     }
 
     return _.pick(payload, authFields);
@@ -81,38 +68,6 @@ class AuthValidate {
   refresh(payload) {
     if (!payload) {
       throw ValidationError('payload', '"payload" is required!');
-    }
-
-    if (!payload.mac) {
-      throw ValidationError('mac', '"payload.mac" is required!');
-    }
-
-    if (!_.isString(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" can only be a string!');
-    }
-
-    if (!validator.isMACAddress(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" is not correctly!');
-    }
-
-    return _.pick(payload, authFields);
-  }
-
-  me(payload) {
-    if (!payload) {
-      throw ValidationError('payload', '"payload" is required!');
-    }
-
-    if (!payload.mac) {
-      throw ValidationError('mac', '"payload.mac" is required!');
-    }
-
-    if (!_.isString(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" can only be a string!');
-    }
-
-    if (!validator.isMACAddress(payload.mac)) {
-      throw ValidationError('mac', '"payload.mac" is not correctly!');
     }
 
     return _.pick(payload, authFields);

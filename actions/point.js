@@ -30,7 +30,7 @@ module.exports = ({ db }) => ({
   getAllWithBusinessId: (pageStart, businesId) => {
     return db.query(
       `SELECT *, (
-        SELECT COUNT(*) FROM point
+        SELECT COUNT(*) FILTER (WHERE idbusiness = ${businesId}) FROM point
       ) as count_rows FROM point
       WHERE idbusiness = ${businesId}
       LIMIT 10 OFFSET ${pageStart}`
@@ -57,7 +57,7 @@ module.exports = ({ db }) => ({
   search: (pageStart, value) => {
     return db.query(
       `SELECT *, (
-        SELECT COUNT(*) FROM point
+        SELECT COUNT(*) FILTER (WHERE name @@ '${value}') FROM point
       ) as count_rows FROM point
       WHERE name @@ '${value}'
       LIMIT 10 OFFSET ${pageStart}`
